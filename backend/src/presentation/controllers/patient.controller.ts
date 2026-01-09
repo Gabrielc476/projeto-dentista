@@ -9,7 +9,9 @@ import {
     HttpCode,
     HttpStatus,
     Logger,
+    UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreatePatientUseCase } from '../../application/use-cases/patient/create-patient.usecase';
 import { GetPatientUseCase } from '../../application/use-cases/patient/get-patient.usecase';
 import { ListPatientsUseCase } from '../../application/use-cases/patient/list-patients.usecase';
@@ -19,6 +21,7 @@ import { CreatePatientDto } from '../../application/dtos/input/create-patient.dt
 import { UpdatePatientDto } from '../../application/dtos/input/update-patient.dto';
 
 @Controller('api/patients')
+@UseGuards(JwtAuthGuard)
 export class PatientController {
     private readonly logger = new Logger(PatientController.name);
 

@@ -9,7 +9,9 @@ import {
     Query,
     HttpCode,
     HttpStatus,
+    UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateProcedureUseCase } from '../../application/use-cases/procedure/create-procedure.usecase';
 import { GetProcedureUseCase } from '../../application/use-cases/procedure/get-procedure.usecase';
 import { ListProceduresUseCase } from '../../application/use-cases/procedure/list-procedures.usecase';
@@ -19,6 +21,7 @@ import { CreateProcedureDto } from '../../application/dtos/input/create-procedur
 import { UpdateProcedureDto } from '../../application/dtos/input/update-procedure.dto';
 
 @Controller('api/procedures')
+@UseGuards(JwtAuthGuard)
 export class ProcedureController {
     constructor(
         private readonly createProcedureUseCase: CreateProcedureUseCase,

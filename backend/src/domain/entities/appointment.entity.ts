@@ -3,6 +3,7 @@ export class Appointment {
     patientId: string;
     scheduledDate: Date;
     status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+    paymentStatus?: 'pending' | 'completed';
     notes?: string;
     totalValue?: number;
     createdAt: Date;

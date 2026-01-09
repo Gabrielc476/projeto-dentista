@@ -6,10 +6,12 @@ export class SupabaseConfig {
     static getInstance(): SupabaseClient {
         if (!this.instance) {
             const supabaseUrl = process.env.SUPABASE_URL || '';
-            const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+            // Use Service Role Key for backend (bypasses RLS)
+            // Falls back to Anon Key if Service Role Key is not set
+            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
             if (!supabaseUrl || !supabaseKey) {
-                throw new Error('Supabase URL and Anon Key must be provided');
+                throw new Error('Supabase URL and Key must be provided');
             }
 
             this.instance = createClient(supabaseUrl, supabaseKey);
@@ -18,3 +20,4 @@ export class SupabaseConfig {
         return this.instance;
     }
 }
+

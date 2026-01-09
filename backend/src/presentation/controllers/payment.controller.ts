@@ -9,7 +9,9 @@ import {
     Query,
     HttpCode,
     HttpStatus,
+    UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreatePaymentUseCase } from '../../application/use-cases/payment/create-payment.usecase';
 import { GetPaymentUseCase } from '../../application/use-cases/payment/get-payment.usecase';
 import { ListPaymentsUseCase } from '../../application/use-cases/payment/list-payments.usecase';
@@ -20,6 +22,7 @@ import { CreatePaymentDto } from '../../application/dtos/input/create-payment.dt
 import { UpdatePaymentDto } from '../../application/dtos/input/update-payment.dto';
 
 @Controller('api/payments')
+@UseGuards(JwtAuthGuard)
 export class PaymentController {
     constructor(
         private readonly createPaymentUseCase: CreatePaymentUseCase,

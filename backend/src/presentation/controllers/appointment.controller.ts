@@ -9,7 +9,9 @@ import {
     Query,
     HttpCode,
     HttpStatus,
+    UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateAppointmentUseCase } from '../../application/use-cases/appointment/create-appointment.usecase';
 import { GetAppointmentUseCase } from '../../application/use-cases/appointment/get-appointment.usecase';
 import { ListAppointmentsUseCase } from '../../application/use-cases/appointment/list-appointments.usecase';
@@ -19,6 +21,7 @@ import { CreateAppointmentDto } from '../../application/dtos/input/create-appoin
 import { UpdateAppointmentDto } from '../../application/dtos/input/update-appointment.dto';
 
 @Controller('api/appointments')
+@UseGuards(JwtAuthGuard)
 export class AppointmentController {
     constructor(
         private readonly createAppointmentUseCase: CreateAppointmentUseCase,

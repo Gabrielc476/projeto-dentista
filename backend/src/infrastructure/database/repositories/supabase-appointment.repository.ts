@@ -22,6 +22,7 @@ export class SupabaseAppointmentRepository implements IAppointmentRepository {
                 patient_id: appointment.patientId,
                 scheduled_date: appointment.scheduledDate,
                 status: appointment.status,
+                payment_status: appointment.paymentStatus || 'pending',
                 notes: appointment.notes,
                 total_value: appointment.totalValue,
             }])
@@ -169,6 +170,7 @@ export class SupabaseAppointmentRepository implements IAppointmentRepository {
                 patient_id: appointment.patientId,
                 scheduled_date: appointment.scheduledDate,
                 status: appointment.status,
+                payment_status: appointment.paymentStatus,
                 notes: appointment.notes,
                 total_value: appointment.totalValue,
                 updated_at: new Date().toISOString(),
@@ -207,6 +209,7 @@ export class SupabaseAppointmentRepository implements IAppointmentRepository {
             patientId: data.patient_id,
             scheduledDate: new Date(data.scheduled_date),
             status: data.status,
+            paymentStatus: data.payment_status,
             notes: data.notes,
             totalValue: data.total_value,
             createdAt: new Date(data.created_at),

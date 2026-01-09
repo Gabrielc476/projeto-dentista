@@ -1,6 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { AuthModule } from './auth/auth.module';
+import { CsrfMiddleware } from './auth/middleware/csrf.middleware';
 
 // Controllers
 import { PatientController } from './presentation/controllers/patient.controller';
@@ -43,7 +46,13 @@ import { DeletePaymentUseCase } from './application/use-cases/payment/delete-pay
       isGlobal: true,
       envFilePath: '.env',
     }),
+    // Rate limiting: 100 requests per 60 seconds per IP
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
     InfrastructureModule,
+    AuthModule,
   ],
   controllers: [
     PatientController,
@@ -79,4 +88,11 @@ import { DeletePaymentUseCase } from './application/use-cases/payment/delete-pay
     DeletePaymentUseCase,
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CsrfMiddleware)
+      .forRoutes('*');
+  }
+}
+

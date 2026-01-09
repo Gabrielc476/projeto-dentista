@@ -1,5 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import type { IPaymentRepository } from '../../../domain/repositories/payment.repository.interface';
+import type { IAppointmentRepository } from '../../../domain/repositories/appointment.repository.interface';
 import { Payment } from '../../../domain/entities/payment.entity';
 import { CreatePaymentDto } from '../../dtos/input/create-payment.dto';
 
@@ -8,6 +9,8 @@ export class CreatePaymentUseCase {
     constructor(
         @Inject('IPaymentRepository')
         private readonly paymentRepository: IPaymentRepository,
+        @Inject('IAppointmentRepository')
+        private readonly appointmentRepository: IAppointmentRepository,
     ) { }
 
     async execute(dto: CreatePaymentDto): Promise<Payment> {
@@ -21,6 +24,16 @@ export class CreatePaymentUseCase {
             notes: dto.notes,
         };
 
-        return await this.paymentRepository.create(paymentData);
+        const payment = await this.paymentRepository.create(paymentData);
+
+        // Sync payment status to appointment
+        if (dto.appointmentId) {
+            const paymentStatus = dto.status === 'completed' ? 'completed' : 'pending';
+            await this.appointmentRepository.update(dto.appointmentId, {
+                paymentStatus,
+            });
+        }
+
+        return payment;
     }
 }
