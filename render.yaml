@@ -10,8 +10,8 @@ services:
     plan: free
     branch: back
     rootDir: backend
-    buildCommand: npm install && npm run build
-    startCommand: npm run start:prod
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/main
     healthCheckPath: /auth/csrf-token
     envVars:
       - key: NODE_ENV
@@ -21,14 +21,14 @@ services:
       - key: SUPABASE_URL
         value: https://xhqwayjqutdndurkxrcm.supabase.co
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false  # Configure no dashboard do Render (valor sensível)
+        sync: false
       - key: JWT_SECRET
-        sync: false  # Configure no dashboard do Render (valor sensível)
+        sync: false
       - key: JWT_EXPIRES_IN
         value: 15m
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD_HASH
-        sync: false  # Configure no dashboard do Render (valor sensível)
+        sync: false
       - key: FRONTEND_URL
-        sync: false  # Atualizar após deploy do Vercel
+        sync: false
