@@ -19,16 +19,16 @@ services:
       - key: PORT
         value: 10000
       - key: SUPABASE_URL
-        sync: false
+        value: https://xhqwayjqutdndurkxrcm.supabase.co
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
+        sync: false  # Configure no dashboard do Render (valor sensível)
       - key: JWT_SECRET
-        generateValue: true
+        sync: false  # Configure no dashboard do Render (valor sensível)
       - key: JWT_EXPIRES_IN
         value: 15m
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD_HASH
-        sync: false
+        sync: false  # Configure no dashboard do Render (valor sensível)
       - key: FRONTEND_URL
-        sync: false
+        sync: false  # Atualizar após deploy do Vercel
