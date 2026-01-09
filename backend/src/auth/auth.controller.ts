@@ -56,7 +56,7 @@ export class AuthController {
         res.cookie('jwt', accessToken, {
             httpOnly: true,
             secure: isProduction,
-            sameSite: 'strict',
+            sameSite: isProduction ? 'none' : 'strict',
             maxAge: 15 * 60 * 1000, // 15 minutes
             path: '/',
         });
@@ -65,7 +65,7 @@ export class AuthController {
         res.cookie('csrf_token', csrfToken, {
             httpOnly: false,
             secure: isProduction,
-            sameSite: 'strict',
+            sameSite: isProduction ? 'none' : 'strict',
             maxAge: 15 * 60 * 1000,
             path: '/',
         });
@@ -98,7 +98,7 @@ export class AuthController {
         res.cookie('csrf_token', csrfToken, {
             httpOnly: false,
             secure: isProduction,
-            sameSite: 'strict',
+            sameSite: isProduction ? 'none' : 'strict',
             maxAge: 15 * 60 * 1000,
             path: '/',
         });
