@@ -21,6 +21,7 @@ export default function ConsultasPage() {
         handleSubmit,
         handleEdit,
         handleDelete,
+        handleStatusChange,
         addProcedure,
         removeProcedure,
         updateProcedure,
@@ -40,6 +41,7 @@ export default function ConsultasPage() {
                 loading={loading}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onStatusChange={handleStatusChange}
             />
 
             <AppointmentFormDialog

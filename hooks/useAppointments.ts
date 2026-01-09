@@ -173,7 +173,18 @@ export function useAppointments() {
             await appointmentService.delete(id);
             loadData();
         } catch (error) {
+            console.error('Erro ao deletar consulta:', error);
             alert('Erro ao deletar consulta');
+        }
+    };
+
+    const handleStatusChange = async (id: string, newStatus: string) => {
+        try {
+            await appointmentService.update(id, { status: newStatus as any });
+            loadData();
+        } catch (error) {
+            console.error('Erro ao atualizar status:', error);
+            alert('Erro ao atualizar status da consulta');
         }
     };
 
@@ -204,13 +215,6 @@ export function useAppointments() {
     };
 
     const updateProcedure = (index: number, field: string, value: any) => {
-        console.log('[useAppointments] updateProcedure called:', {
-            index,
-            field,
-            value,
-            currentProcedures: selectedProcedures
-        });
-
         const updated = [...selectedProcedures];
 
         // Handle multi-field update to avoid stale state
@@ -220,7 +224,6 @@ export function useAppointments() {
             updated[index] = { ...updated[index], [field]: value };
         }
 
-        console.log('[useAppointments] Updated procedures:', updated);
         setSelectedProcedures(updated);
     };
 
@@ -239,8 +242,10 @@ export function useAppointments() {
         handleSubmit,
         handleEdit,
         handleDelete,
+        handleStatusChange,
         addProcedure,
         removeProcedure,
         updateProcedure,
     };
 }
+

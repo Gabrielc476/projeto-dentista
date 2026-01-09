@@ -27,6 +27,7 @@ export interface Appointment {
     patientId: string;
     scheduledDate: Date | string;
     status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+    paymentStatus?: 'pending' | 'completed' | 'paid';
     notes?: string;
     totalValue?: number;
     createdAt: Date;

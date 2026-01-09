@@ -1,25 +1,10 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-// Configuração de logs de diagnóstico
-const ENABLE_PERFORMANCE_LOGS = true;
-
-function logPerformance(method: string, endpoint: string, startTime: number, success: boolean = true) {
-    if (!ENABLE_PERFORMANCE_LOGS) return;
-
-    const duration = performance.now() - startTime;
-    const status = success ? '✅' : '❌';
-    const color = duration > 1000 ? 'color: red; font-weight: bold' :
-        duration > 500 ? 'color: orange' :
-            'color: green';
-
-    console.log(
-        `%c[API ${status}] ${method} ${endpoint} - ${duration.toFixed(2)}ms`,
-        color
-    );
-
-    if (duration > 1000) {
-        console.warn(`⚠️ Requisição lenta detectada: ${method} ${endpoint} levou ${duration.toFixed(2)}ms`);
-    }
+// Helper to get CSRF token from cookie
+function getCsrfToken(): string | null {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(/csrf_token=([^;]+)/);
+    return match ? match[1] : null;
 }
 
 export class ApiClient {
@@ -27,131 +12,140 @@ export class ApiClient {
 
     constructor() {
         this.baseUrl = API_URL;
-        if (ENABLE_PERFORMANCE_LOGS) {
-            console.log(`[API] Cliente inicializado. Base URL: ${API_URL}`);
+    }
+
+    private getHeaders(includeBody: boolean = false): HeadersInit {
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+        };
+
+        // Add CSRF token for state-changing requests
+        if (includeBody) {
+            const csrfToken = getCsrfToken();
+            if (csrfToken) {
+                headers['X-CSRF-Token'] = csrfToken;
+            }
         }
+
+        return headers;
     }
 
     async get<T>(endpoint: string): Promise<T> {
-        const startTime = performance.now();
-        if (ENABLE_PERFORMANCE_LOGS) {
-            console.log(`[API] 🚀 Iniciando GET ${endpoint}`);
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'GET',
+            headers: this.getHeaders(),
+            credentials: 'include',
+        });
+
+        if (response.status === 401) {
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+            }
+            throw new Error('Unauthorized - redirecting to login');
         }
 
-        try {
-            const response = await fetch(`${this.baseUrl}${endpoint}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                logPerformance('GET', endpoint, startTime, false);
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            logPerformance('GET', endpoint, startTime, true);
-
-            if (ENABLE_PERFORMANCE_LOGS && Array.isArray(data)) {
-                console.log(`[API] 📦 GET ${endpoint} retornou ${data.length} itens`);
-            }
-
-            return data;
-        } catch (error) {
-            logPerformance('GET', endpoint, startTime, false);
-            throw error;
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        return response.json();
     }
 
     async post<T>(endpoint: string, data: any): Promise<T> {
-        console.log(`[API] POST ${endpoint}`);
-        console.log(`[API] Request data:`, JSON.stringify(data, null, 2));
-
         const response = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: this.getHeaders(true),
+            credentials: 'include',
             body: JSON.stringify(data),
         });
 
+        if (response.status === 401) {
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+            }
+            throw new Error('Unauthorized - redirecting to login');
+        }
+
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`[API] POST ${endpoint} failed with status ${response.status}`);
-            console.error(`[API] Error response:`, errorText);
-
             let errorDetail = errorText;
             try {
                 const errorJson = JSON.parse(errorText);
                 errorDetail = JSON.stringify(errorJson, null, 2);
-                console.error(`[API] Error details:`, errorJson);
-            } catch (e) {
+            } catch {
                 // Error is not JSON
             }
-
             throw new Error(`HTTP error! status: ${response.status}, details: ${errorDetail}`);
         }
 
-        const result = await response.json();
-        console.log(`[API] POST ${endpoint} succeeded`);
-        return result;
+        return response.json();
     }
 
     async put<T>(endpoint: string, data: any): Promise<T> {
-        const startTime = performance.now();
-        if (ENABLE_PERFORMANCE_LOGS) {
-            console.log(`[API] 🚀 Iniciando PUT ${endpoint}`);
-        }
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'PUT',
+            headers: this.getHeaders(true),
+            credentials: 'include',
+            body: JSON.stringify(data),
+        });
 
-        try {
-            const response = await fetch(`${this.baseUrl}${endpoint}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                logPerformance('PUT', endpoint, startTime, false);
-                throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.status === 401) {
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
             }
-
-            const result = await response.json();
-            logPerformance('PUT', endpoint, startTime, true);
-            return result;
-        } catch (error) {
-            logPerformance('PUT', endpoint, startTime, false);
-            throw error;
+            throw new Error('Unauthorized - redirecting to login');
         }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
     }
 
     async delete(endpoint: string): Promise<void> {
-        const startTime = performance.now();
-        if (ENABLE_PERFORMANCE_LOGS) {
-            console.log(`[API] 🚀 Iniciando DELETE ${endpoint}`);
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(true),
+            credentials: 'include',
+        });
+
+        if (response.status === 401) {
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+            }
+            throw new Error('Unauthorized - redirecting to login');
         }
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    }
+
+    // Auth-specific methods
+    async checkAuth(): Promise<{ authenticated: boolean; username?: string }> {
         try {
-            const response = await fetch(`${this.baseUrl}${endpoint}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            const response = await fetch(`${this.baseUrl}/auth/me`, {
+                method: 'GET',
+                credentials: 'include',
             });
 
             if (!response.ok) {
-                logPerformance('DELETE', endpoint, startTime, false);
-                throw new Error(`HTTP error! status: ${response.status}`);
+                return { authenticated: false };
             }
 
-            logPerformance('DELETE', endpoint, startTime, true);
-        } catch (error) {
-            logPerformance('DELETE', endpoint, startTime, false);
-            throw error;
+            const data = await response.json();
+            return { authenticated: true, username: data.username };
+        } catch {
+            return { authenticated: false };
         }
+    }
+
+    async logout(): Promise<void> {
+        await fetch(`${this.baseUrl}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+        });
     }
 }
 
