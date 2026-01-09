@@ -127,6 +127,57 @@
   }
 }
 
+/* Components layer - lower specificity than utilities, so Tailwind classes can override */
+@layer components {
+
+  /* Premium Sidebar Glass - positioned via Tailwind's fixed class */
+  .glass-sidebar {
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.88) 100%);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid transparent;
+    background-clip: padding-box;
+    box-shadow:
+      4px 0 24px 0 rgba(31, 38, 135, 0.08),
+      inset -1px 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: backdrop-filter 0.3s ease;
+  }
+
+  .glass-sidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.6),
+        rgba(209, 213, 219, 0.4),
+        rgba(255, 255, 255, 0.6));
+    pointer-events: none;
+  }
+
+  .dark .glass-sidebar {
+    background: linear-gradient(180deg,
+        rgba(25, 30, 45, 0.92) 0%,
+        rgba(20, 25, 40, 0.85) 100%);
+    backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
+    box-shadow:
+      4px 0 24px 0 rgba(0, 0, 0, 0.3),
+      inset -1px 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .dark .glass-sidebar::after {
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.12),
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.12));
+  }
+}
+
 @layer utilities {
   .gradient-teal {
     background: linear-gradient(135deg,
@@ -264,54 +315,6 @@
     background: linear-gradient(135deg,
         rgba(255, 255, 255, 0.2),
         rgba(255, 255, 255, 0.08));
-  }
-
-  /* Premium Sidebar Glass */
-  .glass-sidebar {
-    position: relative;
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.95) 0%,
-        rgba(255, 255, 255, 0.88) 100%);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-right: 1px solid transparent;
-    background-clip: padding-box;
-    box-shadow:
-      4px 0 24px 0 rgba(31, 38, 135, 0.08),
-      inset -1px 0 1px 0 rgba(255, 255, 255, 0.8);
-    transition: backdrop-filter 0.3s ease;
-  }
-
-  .glass-sidebar::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 1px;
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.6),
-        rgba(209, 213, 219, 0.4),
-        rgba(255, 255, 255, 0.6));
-    pointer-events: none;
-  }
-
-  .dark .glass-sidebar {
-    background: linear-gradient(180deg,
-        rgba(25, 30, 45, 0.92) 0%,
-        rgba(20, 25, 40, 0.85) 100%);
-    backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
-    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
-    box-shadow:
-      4px 0 24px 0 rgba(0, 0, 0, 0.3),
-      inset -1px 0 1px 0 rgba(255, 255, 255, 0.08);
-  }
-
-  .dark .glass-sidebar::after {
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.12),
-        rgba(255, 255, 255, 0.05),
-        rgba(255, 255, 255, 0.12));
   }
 
   /* Premium Dialog/Modal */
