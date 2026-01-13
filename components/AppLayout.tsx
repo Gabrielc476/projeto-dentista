@@ -48,6 +48,19 @@ function Sidebar() {
                 <SidebarLink href="/pagamentos" icon="💰" active={isActive('/pagamentos')}>
                     Pagamentos
                 </SidebarLink>
+
+                {/* Separator for Clinic Management */}
+                <div className="pt-4 pb-2">
+                    <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Gestão da Clínica
+                    </p>
+                </div>
+                <SidebarLink href="/medicos" icon="👨‍⚕️" active={isActive('/medicos')}>
+                    Médicos
+                </SidebarLink>
+                <SidebarLink href="/locacoes" icon="🏢" active={isActive('/locacoes')}>
+                    Locações
+                </SidebarLink>
             </nav>
 
             {/* Footer */}
@@ -80,8 +93,8 @@ function SidebarLink({ href, icon, children, active }: { href: string; icon: str
         <Link
             href={href}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${active
-                    ? 'bg-primary/20 text-primary'
-                    : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                ? 'bg-primary/20 text-primary'
+                : 'text-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
         >
             <span className="text-lg">{icon}</span>
