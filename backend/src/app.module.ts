@@ -10,6 +10,8 @@ import { PatientController } from './presentation/controllers/patient.controller
 import { ProcedureController } from './presentation/controllers/procedure.controller';
 import { AppointmentController } from './presentation/controllers/appointment.controller';
 import { PaymentController } from './presentation/controllers/payment.controller';
+import { DoctorController } from './presentation/controllers/doctor.controller';
+import { ClinicRentalController } from './presentation/controllers/clinic-rental.controller';
 
 // Patient Use Cases
 import { CreatePatientUseCase } from './application/use-cases/patient/create-patient.usecase';
@@ -40,6 +42,20 @@ import { ListPendingPaymentsUseCase } from './application/use-cases/payment/list
 import { UpdatePaymentUseCase } from './application/use-cases/payment/update-payment.usecase';
 import { DeletePaymentUseCase } from './application/use-cases/payment/delete-payment.usecase';
 
+// Doctor Use Cases
+import { CreateDoctorUseCase } from './application/use-cases/doctor/create-doctor.usecase';
+import { GetDoctorUseCase } from './application/use-cases/doctor/get-doctor.usecase';
+import { ListDoctorsUseCase } from './application/use-cases/doctor/list-doctors.usecase';
+import { UpdateDoctorUseCase } from './application/use-cases/doctor/update-doctor.usecase';
+import { DeleteDoctorUseCase } from './application/use-cases/doctor/delete-doctor.usecase';
+
+// ClinicRental Use Cases
+import { CreateClinicRentalUseCase } from './application/use-cases/clinic-rental/create-clinic-rental.usecase';
+import { GetClinicRentalUseCase } from './application/use-cases/clinic-rental/get-clinic-rental.usecase';
+import { ListClinicRentalsUseCase } from './application/use-cases/clinic-rental/list-clinic-rentals.usecase';
+import { UpdateClinicRentalUseCase } from './application/use-cases/clinic-rental/update-clinic-rental.usecase';
+import { DeleteClinicRentalUseCase } from './application/use-cases/clinic-rental/delete-clinic-rental.usecase';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -59,6 +75,8 @@ import { DeletePaymentUseCase } from './application/use-cases/payment/delete-pay
     ProcedureController,
     AppointmentController,
     PaymentController,
+    DoctorController,
+    ClinicRentalController,
   ],
   providers: [
     // Patient Use Cases
@@ -86,6 +104,18 @@ import { DeletePaymentUseCase } from './application/use-cases/payment/delete-pay
     ListPendingPaymentsUseCase,
     UpdatePaymentUseCase,
     DeletePaymentUseCase,
+    // Doctor Use Cases
+    CreateDoctorUseCase,
+    GetDoctorUseCase,
+    ListDoctorsUseCase,
+    UpdateDoctorUseCase,
+    DeleteDoctorUseCase,
+    // ClinicRental Use Cases
+    CreateClinicRentalUseCase,
+    GetClinicRentalUseCase,
+    ListClinicRentalsUseCase,
+    UpdateClinicRentalUseCase,
+    DeleteClinicRentalUseCase,
   ],
 })
 export class AppModule implements NestModule {
@@ -95,4 +125,5 @@ export class AppModule implements NestModule {
       .forRoutes('*');
   }
 }
+
 
