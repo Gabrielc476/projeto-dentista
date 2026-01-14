@@ -1,8 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Appointment, AppointmentFormData, Patient, Procedure } from '@/types';
+import { Appointment, AppointmentFormData, Patient, Procedure, ShiftType, SHIFT_NAMES } from '@/types';
 import { appointmentService } from '@/features/appointments/services/appointment.service';
 import { patientService } from '@/features/patients/services/patient.service';
 import { procedureService } from '@/features/procedures/services/procedure.service';
+import { clinicRentalService } from '@/features/clinic-rentals/services/clinic-rental.service';
+
+// Helper to determine shift from time
+function getShiftFromTime(date: Date): ShiftType {
+    const hours = date.getHours();
+    if (hours >= 8 && hours < 12) return 'morning';
+    if (hours >= 14 && hours < 18) return 'afternoon';
+    if (hours >= 18 && hours < 22) return 'evening';
+    // Default to morning for times outside standard shifts
+    return 'morning';
+}
 
 interface ProcedureSelection {
     id: string;
@@ -15,6 +26,7 @@ export function useAppointments() {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [procedures, setProcedures] = useState<Procedure[]>([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
     const [selectedProcedures, setSelectedProcedures] = useState<ProcedureSelection[]>([]);
@@ -75,6 +87,8 @@ export function useAppointments() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (submitting) return;
+
         if (selectedProcedures.length === 0) {
             alert('Selecione pelo menos um procedimento');
             return;
@@ -116,6 +130,44 @@ export function useAppointments() {
             }
         }
 
+        // Check for conflicts with clinic rentals
+        try {
+            const appointmentDate = new Date(formData.scheduledDate);
+            const dateStr = appointmentDate.toISOString().split('T')[0];
+            const appointmentShift = getShiftFromTime(appointmentDate);
+
+            // Fetch rentals for the same date
+            const rentals = await clinicRentalService.getAll(dateStr, dateStr);
+
+            // Check if there's a rental in the same shift
+            const conflictingRentals = rentals.filter(rental => {
+                const rentalDate = typeof rental.date === 'string'
+                    ? rental.date.split('T')[0]
+                    : new Date(rental.date).toISOString().split('T')[0];
+                return rentalDate === dateStr && rental.shift === appointmentShift;
+            });
+
+            if (conflictingRentals.length > 0) {
+                const rentalInfo = conflictingRentals.map(r =>
+                    `${r.doctorName} (${r.doctorType === 'fixed' ? 'Fixo' : 'Avulso'}) - ${SHIFT_NAMES[r.shift]}`
+                ).join('\n');
+
+                const proceed = window.confirm(
+                    `⚠️ ATENÇÃO: LOCAÇÃO EXISTENTE!\n\n` +
+                    `Já existe uma locação de sala para o turno ${SHIFT_NAMES[appointmentShift]} neste dia:\n\n${rentalInfo}\n\n` +
+                    `A sala pode estar ocupada por outro médico.\nDeseja continuar mesmo assim?`
+                );
+
+                if (!proceed) {
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error('Error checking rental conflicts:', error);
+            // Continue anyway if we can't check rentals
+        }
+
+        setSubmitting(true);
         try {
             // Remove empty string fields for optional fields
             const cleanedData: any = {
@@ -140,6 +192,8 @@ export function useAppointments() {
         } catch (error) {
             console.error('Error saving appointment:', error);
             alert('Erro ao salvar consulta');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -227,11 +281,17 @@ export function useAppointments() {
         setSelectedProcedures(updated);
     };
 
+    const handlePatientCreated = (patient: Patient) => {
+        // Add new patient to the list and keep it updated
+        setPatients(prev => [...prev, patient].sort((a, b) => a.name.localeCompare(b.name)));
+    };
+
     return {
         appointments,
         patients,
         procedures,
         loading,
+        submitting,
         dialogOpen,
         formData,
         editingAppointment,
@@ -246,6 +306,7 @@ export function useAppointments() {
         addProcedure,
         removeProcedure,
         updateProcedure,
+        handlePatientCreated,
     };
 }
 

@@ -4,6 +4,7 @@ import { Appointment, AppointmentFormData } from '@/types';
 export interface IAppointmentService {
     getAll(filters?: { patientId?: string; status?: string; date?: string }): Promise<Appointment[]>;
     getById(id: string): Promise<Appointment>;
+    getByDateRange(startDate: string, endDate: string): Promise<Appointment[]>;
     create(data: AppointmentFormData): Promise<Appointment>;
     update(id: string, data: Partial<AppointmentFormData>): Promise<Appointment>;
     delete(id: string): Promise<void>;
@@ -24,6 +25,13 @@ class AppointmentService implements IAppointmentService {
 
     async getById(id: string): Promise<Appointment> {
         return api.get<Appointment>(`/api/appointments/${id}`);
+    }
+
+    async getByDateRange(startDate: string, endDate: string): Promise<Appointment[]> {
+        const params = new URLSearchParams();
+        params.append('startDate', startDate);
+        params.append('endDate', endDate);
+        return api.get<Appointment[]>(`/api/appointments?${params.toString()}`);
     }
 
     async create(data: AppointmentFormData): Promise<Appointment> {

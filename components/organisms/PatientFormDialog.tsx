@@ -17,6 +17,7 @@ interface PatientFormDialogProps {
     onChange: (data: PatientFormData) => void;
     onSubmit: (e: React.FormEvent) => void;
     isEditing: boolean;
+    submitting?: boolean;
 }
 
 export function PatientFormDialog({
@@ -26,9 +27,10 @@ export function PatientFormDialog({
     onChange,
     onSubmit,
     isEditing,
+    submitting = false,
 }: PatientFormDialogProps) {
     return (
-        <Dialog open={open} onOpenChange={onClose}>
+        <Dialog open={open} onOpenChange={submitting ? undefined : onClose}>
             <DialogContent className="sm:max-w-[500px]">
                 <form onSubmit={onSubmit}>
                     <DialogHeader>
@@ -47,13 +49,17 @@ export function PatientFormDialog({
                             type="button"
                             variant="outline"
                             onClick={onClose}
+                            disabled={submitting}
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit">Salvar</Button>
+                        <Button type="submit" disabled={submitting}>
+                            {submitting ? 'Salvando...' : 'Salvar'}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
     );
 }
+

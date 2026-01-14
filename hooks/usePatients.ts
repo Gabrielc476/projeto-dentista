@@ -5,6 +5,7 @@ import { patientService } from '@/features/patients/services/patient.service';
 export function usePatients() {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false); // Previne duplo clique
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
     const [formData, setFormData] = useState<PatientFormData>({
@@ -48,6 +49,11 @@ export function usePatients() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Previne duplo clique
+        if (submitting) return;
+        setSubmitting(true);
+
         try {
             // Remove empty string fields for optional fields
             const cleanedData = { ...formData };
@@ -67,6 +73,8 @@ export function usePatients() {
         } catch (error) {
             console.error('Error saving patient:', error);
             alert('Erro ao salvar paciente');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -109,6 +117,7 @@ export function usePatients() {
     return {
         patients,
         loading,
+        submitting,
         dialogOpen,
         formData,
         editingPatient,
@@ -120,3 +129,4 @@ export function usePatients() {
         handleDelete,
     };
 }
+

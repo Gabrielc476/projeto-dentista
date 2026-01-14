@@ -124,6 +124,21 @@ export interface ClinicRental {
     doctorType?: DoctorType;
 }
 
+// Calendar item for rentals page - can be either a rental or an appointment
+export interface CalendarItem {
+    id: string;
+    type: 'rental' | 'appointment';
+    date: Date | string;
+    shift: ShiftType;
+    // For rentals
+    doctorName?: string;
+    doctorType?: DoctorType;
+    // For appointments
+    patientName?: string;
+    scheduledTime?: string;
+    status?: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+}
+
 // Form types
 export interface PatientFormData {
     name: string;

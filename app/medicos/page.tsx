@@ -37,6 +37,18 @@ import { DoctorType, ShiftType, SHIFT_NAMES, WEEKDAY_NAMES, WeekdayNumber } from
 
 const WEEKDAYS: WeekdayNumber[] = [1, 2, 3, 4, 5, 6, 0]; // Monday to Sunday
 
+// Formatador de telefone
+function formatPhone(value: string): string {
+    // Remove tudo que não é dígito
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+
+    // Aplica a máscara: (00) 00000-0000 ou (00) 0000-0000
+    if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
 export default function MedicosPage() {
     const {
         doctors,
@@ -53,6 +65,10 @@ export default function MedicosPage() {
         handleEdit,
         handleDelete,
     } = useDoctors();
+
+    const handlePhoneChange = (value: string) => {
+        handleFormChange({ ...formData, phone: formatPhone(value) });
+    };
 
     const getTypeBadge = (type: DoctorType) => {
         return type === 'fixed' ? (
@@ -205,8 +221,8 @@ export default function MedicosPage() {
                                     <Input
                                         id="phone"
                                         value={formData.phone}
-                                        onChange={(e) => handleFormChange({ ...formData, phone: e.target.value })}
-                                        placeholder="(11) 99999-9999"
+                                        onChange={(e) => handlePhoneChange(e.target.value)}
+                                        placeholder="(00) 00000-0000"
                                         required
                                     />
                                 </div>

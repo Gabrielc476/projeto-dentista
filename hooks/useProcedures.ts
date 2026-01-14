@@ -5,6 +5,7 @@ import { procedureService } from '@/features/procedures/services/procedure.servi
 export function useProcedures() {
     const [procedures, setProcedures] = useState<Procedure[]>([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingProcedure, setEditingProcedure] = useState<Procedure | null>(null);
     const [formData, setFormData] = useState<ProcedureFormData>({
@@ -46,6 +47,8 @@ export function useProcedures() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (submitting) return;
+        setSubmitting(true);
         try {
             // Remove empty string fields for optional fields
             const cleanedData = { ...formData };
@@ -63,6 +66,8 @@ export function useProcedures() {
         } catch (error) {
             console.error('Error saving procedure:', error);
             alert('Erro ao salvar procedimento');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -101,6 +106,7 @@ export function useProcedures() {
     return {
         procedures,
         loading,
+        submitting,
         dialogOpen,
         formData,
         editingProcedure,

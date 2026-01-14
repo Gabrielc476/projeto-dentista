@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo, useCallback } from 'react';
 import { useClinicRentals } from '@/hooks/useClinicRentals';
 import { PageHeader } from '@/components/molecules/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -23,8 +24,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Calendar, Plus, Trash2, Pencil } from 'lucide-react';
-import { ShiftType, SHIFT_LABELS, SHIFT_NAMES, ClinicRental } from '@/types';
+import { ChevronLeft, ChevronRight, Calendar, Plus, Trash2, Pencil, Stethoscope, Download } from 'lucide-react';
+import { ShiftType, SHIFT_LABELS, SHIFT_NAMES, CalendarItem } from '@/types';
+import { useRouter } from 'next/navigation';
+import { DoctorCombobox } from '@/components/molecules/DoctorCombobox';
+import { DatePicker } from '@/components/molecules/DatePicker';
+import { useOccupancy } from '@/hooks/useOccupancy';
+import { AvailabilityExportModal } from '@/components/molecules/AvailabilityExportModal';
 
 const SHIFTS: ShiftType[] = ['morning', 'afternoon', 'evening'];
 
@@ -35,8 +41,10 @@ const MONTH_NAMES = [
 ];
 
 export default function LocacoesPage() {
+    const router = useRouter();
     const {
         doctors,
+        rentals,
         loading,
         dialogOpen,
         formData,
@@ -52,9 +60,32 @@ export default function LocacoesPage() {
         handleSubmit,
         handleEdit,
         handleDelete,
-        getRentalForSlot,
+        getItemsForSlot,
         formatDate,
+        handleDoctorCreated,
     } = useClinicRentals();
+
+    // Get cross-entity occupancy data
+    const { fullyOccupiedDates, isShiftBusy: occupancyIsShiftBusy } = useOccupancy();
+
+    // Filter isShiftBusy to exclude the rental being edited
+    const isShiftBusy = useCallback((date: string, shift: ShiftType): boolean => {
+        if (!occupancyIsShiftBusy) return false;
+
+        // Exclude the rental being edited
+        if (editingRental) {
+            const editingDate = editingRental.date;
+            let editingDateStr: string;
+            if (editingDate instanceof Date) {
+                editingDateStr = `${editingDate.getFullYear()}-${String(editingDate.getMonth() + 1).padStart(2, '0')}-${String(editingDate.getDate()).padStart(2, '0')}`;
+            } else {
+                editingDateStr = typeof editingDate === 'string' ? editingDate : '';
+            }
+            if (date === editingDateStr && shift === editingRental.shift) return false;
+        }
+
+        return occupancyIsShiftBusy(date, shift);
+    }, [occupancyIsShiftBusy, editingRental]);
 
     const formatWeekRange = () => {
         const start = weekDays[0];
@@ -73,41 +104,77 @@ export default function LocacoesPage() {
         return date.toDateString() === today.toDateString();
     };
 
-    const renderRentalCell = (rental: ClinicRental | undefined, date: Date, shift: ShiftType) => {
+    const renderCalendarCell = (items: CalendarItem[], date: Date, shift: ShiftType) => {
         const dateStr = formatDate(date);
 
-        if (rental) {
+        if (items.length > 0) {
             return (
-                <div
-                    className={`p-2 rounded-lg h-full min-h-[60px] cursor-pointer transition-all
-                        ${rental.doctorType === 'fixed'
-                            ? 'bg-emerald-500/20 border border-emerald-500/30 hover:bg-emerald-500/30'
-                            : 'bg-blue-500/20 border border-blue-500/30 hover:bg-blue-500/30'
-                        }`}
-                    onClick={() => handleEdit(rental)}
-                >
-                    <div className="flex justify-between items-start gap-1">
-                        <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{rental.doctorName}</p>
-                            <Badge
-                                variant="outline"
-                                className={`text-xs mt-1 ${rental.doctorType === 'fixed' ? 'border-emerald-500/50' : 'border-blue-500/50'}`}
-                            >
-                                {rental.doctorType === 'fixed' ? 'Fixo' : 'Avulso'}
-                            </Badge>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-destructive hover:text-destructive"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(rental.id);
-                            }}
-                        >
-                            <Trash2 className="h-3 w-3" />
-                        </Button>
-                    </div>
+                <div className="space-y-1 min-h-[60px]">
+                    {items.map((item) => {
+                        if (item.type === 'rental') {
+                            // Find the full rental data for editing
+                            const rental = rentals.find(r => r.id === item.id);
+                            return (
+                                <div
+                                    key={item.id}
+                                    className={`p-2 rounded-lg cursor-pointer transition-all
+                                        ${item.doctorType === 'fixed'
+                                            ? 'bg-emerald-500/20 border border-emerald-500/30 hover:bg-emerald-500/30'
+                                            : 'bg-blue-500/20 border border-blue-500/30 hover:bg-blue-500/30'
+                                        }`}
+                                    onClick={() => rental && handleEdit(rental)}
+                                >
+                                    <div className="flex justify-between items-start gap-1">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-sm truncate">{item.doctorName}</p>
+                                            <Badge
+                                                variant="outline"
+                                                className={`text-xs mt-1 ${item.doctorType === 'fixed' ? 'border-emerald-500/50' : 'border-blue-500/50'}`}
+                                            >
+                                                {item.doctorType === 'fixed' ? 'Fixo' : 'Avulso'}
+                                            </Badge>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 text-destructive hover:text-destructive"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(item.id);
+                                            }}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            );
+                        } else {
+                            // Appointment item
+                            return (
+                                <div
+                                    key={item.id}
+                                    className="p-2 rounded-lg cursor-pointer transition-all
+                                        bg-violet-500/20 border border-violet-500/30 hover:bg-violet-500/30"
+                                    onClick={() => router.push(`/consultas/${item.id}`)}
+                                >
+                                    <div className="flex justify-between items-start gap-1">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-sm truncate">
+                                                {item.scheduledTime} - {item.patientName}
+                                            </p>
+                                            <Badge
+                                                variant="outline"
+                                                className="text-xs mt-1 border-violet-500/50"
+                                            >
+                                                <Stethoscope className="h-3 w-3 mr-1" />
+                                                Consulta
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+                    })}
                 </div>
             );
         }
@@ -123,14 +190,26 @@ export default function LocacoesPage() {
         );
     };
 
+    const [exportModalOpen, setExportModalOpen] = useState(false);
+
     return (
         <div className="space-y-6">
-            <PageHeader
-                title="Locações da Clínica"
-                description="Calendário de locação por turnos"
-                actionLabel="+ Nova Locação"
-                onAction={() => openDialog()}
-            />
+            <div className="flex items-center justify-between">
+                <PageHeader
+                    title="Locações da Clínica"
+                    description="Calendário de locação por turnos"
+                    actionLabel="+ Nova Locação"
+                    onAction={() => openDialog()}
+                />
+                <Button
+                    variant="outline"
+                    onClick={() => setExportModalOpen(true)}
+                    className="gap-2"
+                >
+                    <Download className="h-4 w-4" />
+                    Exportar
+                </Button>
+            </div>
 
             {/* Navegação do Calendário */}
             <Card className="glass-card">
@@ -157,6 +236,10 @@ export default function LocacoesPage() {
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded bg-blue-500/50" />
                                 <span>Avulso</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded bg-violet-500/50" />
+                                <span>Consulta</span>
                             </div>
                         </div>
                     </div>
@@ -203,7 +286,7 @@ export default function LocacoesPage() {
                                                     key={idx}
                                                     className={`p-2 ${isToday(day) ? 'bg-primary/5' : ''}`}
                                                 >
-                                                    {renderRentalCell(getRentalForSlot(day, shift), day, shift)}
+                                                    {renderCalendarCell(getItemsForSlot(day, shift), day, shift)}
                                                 </td>
                                             ))}
                                         </tr>
@@ -217,7 +300,7 @@ export default function LocacoesPage() {
 
             {/* Dialog */}
             <Dialog open={dialogOpen} onOpenChange={closeDialog}>
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="sm:max-w-[700px]">
                     <form onSubmit={handleSubmit}>
                         <DialogHeader>
                             <DialogTitle>
@@ -230,36 +313,26 @@ export default function LocacoesPage() {
                         <div className="py-4 space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="doctorId">Médico *</Label>
-                                <Select
+                                <DoctorCombobox
+                                    doctors={doctors}
                                     value={formData.doctorId}
-                                    onValueChange={(v) => handleFormChange({ ...formData, doctorId: v })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione o médico" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {doctors.map((doctor) => (
-                                            <SelectItem key={doctor.id} value={doctor.id}>
-                                                {doctor.name} ({doctor.type === 'fixed' ? 'Fixo' : 'Avulso'})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {doctors.length === 0 && (
-                                    <p className="text-sm text-muted-foreground">
-                                        Nenhum médico cadastrado. <a href="/medicos" className="text-primary underline">Cadastre um médico primeiro.</a>
-                                    </p>
-                                )}
+                                    onChange={(id) => handleFormChange({ ...formData, doctorId: id })}
+                                    onDoctorCreated={(doctor) => {
+                                        handleDoctorCreated(doctor);
+                                        handleFormChange({ ...formData, doctorId: doctor.id });
+                                    }}
+                                />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="date">Data *</Label>
-                                    <Input
-                                        id="date"
-                                        type="date"
+                                    <DatePicker
                                         value={formData.date}
-                                        onChange={(e) => handleFormChange({ ...formData, date: e.target.value })}
-                                        required
+                                        onChange={(value) => handleFormChange({ ...formData, date: value })}
+                                        placeholder="Selecione a data"
+                                        fullyOccupiedDates={fullyOccupiedDates}
+                                        selectedShift={formData.shift}
+                                        isShiftBusy={isShiftBusy}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -272,11 +345,19 @@ export default function LocacoesPage() {
                                             <SelectValue placeholder="Selecione o turno" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {SHIFTS.map((shift) => (
-                                                <SelectItem key={shift} value={shift}>
-                                                    {SHIFT_NAMES[shift]} ({SHIFT_LABELS[shift]})
-                                                </SelectItem>
-                                            ))}
+                                            {SHIFTS.map((shift) => {
+                                                const isBusy = formData.date && isShiftBusy(formData.date, shift);
+                                                return (
+                                                    <SelectItem
+                                                        key={shift}
+                                                        value={shift}
+                                                        className={isBusy ? 'text-red-500 line-through opacity-70' : ''}
+                                                    >
+                                                        {SHIFT_NAMES[shift]} ({SHIFT_LABELS[shift]})
+                                                        {isBusy && <span className="ml-2 text-xs text-red-500">(Ocupado)</span>}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -301,6 +382,12 @@ export default function LocacoesPage() {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {/* Modal de Exportação */}
+            <AvailabilityExportModal
+                open={exportModalOpen}
+                onOpenChange={setExportModalOpen}
+            />
         </div>
     );
 }

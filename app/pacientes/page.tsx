@@ -9,6 +9,7 @@ export default function PacientesPage() {
     const {
         patients,
         loading,
+        submitting,
         dialogOpen,
         formData,
         editingPatient,
@@ -43,7 +44,9 @@ export default function PacientesPage() {
                 onChange={handleFormChange}
                 onSubmit={handleSubmit}
                 isEditing={!!editingPatient}
+                submitting={submitting}
             />
         </div>
     );
 }
+

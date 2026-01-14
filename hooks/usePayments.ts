@@ -9,6 +9,7 @@ export function usePayments() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
     const [formData, setFormData] = useState<PaymentFormData>({
@@ -59,6 +60,8 @@ export function usePayments() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (submitting) return;
+        setSubmitting(true);
         try {
             // Remove empty string fields for optional fields
             const cleanedData = { ...formData };
@@ -74,6 +77,8 @@ export function usePayments() {
         } catch (error) {
             console.error('Error saving payment:', error);
             alert('Erro ao salvar pagamento');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -126,6 +131,7 @@ export function usePayments() {
         appointments,
         patients,
         loading,
+        submitting,
         dialogOpen,
         formData,
         editingPayment,

@@ -18,7 +18,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Patient, Procedure } from '@/types';
+import { Patient, Procedure, Appointment } from '@/types';
+import { PatientCombobox } from '@/components/molecules/PatientCombobox';
+import { DateTimePicker } from '@/components/molecules/DateTimePicker';
+import { useMemo } from 'react';
+import { useOccupancy } from '@/hooks/useOccupancy';
 
 interface ProcedureSelection {
     id: string;
@@ -45,6 +49,9 @@ interface AppointmentFormDialogProps {
     onAddProcedure: () => void;
     onRemoveProcedure: (index: number) => void;
     onUpdateProcedure: (index: number, field: string, value: any) => void;
+    onPatientCreated?: (patient: Patient) => void;
+    existingAppointments?: Appointment[];  // For busy slot detection
+    editingAppointmentId?: string;  // To exclude current appointment from busy slots
 }
 
 export function AppointmentFormDialog({
@@ -60,10 +67,45 @@ export function AppointmentFormDialog({
     onAddProcedure,
     onRemoveProcedure,
     onUpdateProcedure,
+    onPatientCreated,
+    existingAppointments = [],
+    editingAppointmentId,
 }: AppointmentFormDialogProps) {
+    // Get cross-entity occupancy data
+    const { fullyOccupiedDates, isTimeSlotBusy } = useOccupancy();
+
+    // Filter busy slots to exclude the appointment being edited
+    const filteredIsTimeSlotBusy = useMemo(() => {
+        if (!editingAppointmentId) return isTimeSlotBusy;
+
+        // Get the scheduled date of the appointment being edited
+        const editingAppointment = existingAppointments.find(a => a.id === editingAppointmentId);
+        if (!editingAppointment) return isTimeSlotBusy;
+
+        const editingDate = editingAppointment.scheduledDate;
+        let editingDateStr: string;
+        let editingTime: string;
+
+        if (editingDate instanceof Date) {
+            editingDateStr = `${editingDate.getFullYear()}-${String(editingDate.getMonth() + 1).padStart(2, '0')}-${String(editingDate.getDate()).padStart(2, '0')}`;
+            editingTime = `${String(editingDate.getHours()).padStart(2, '0')}:${String(editingDate.getMinutes()).padStart(2, '0')}`;
+        } else if (typeof editingDate === 'string') {
+            editingDateStr = editingDate.split('T')[0];
+            editingTime = editingDate.split('T')[1]?.slice(0, 5) || '';
+        } else {
+            return isTimeSlotBusy;
+        }
+
+        return (date: string, time: string) => {
+            // Exclude the slot being edited
+            if (date === editingDateStr && time === editingTime) return false;
+            return isTimeSlotBusy(date, time);
+        };
+    }, [isTimeSlotBusy, editingAppointmentId, existingAppointments]);
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
                 <form onSubmit={onSubmit}>
                     <DialogHeader>
                         <DialogTitle>
@@ -76,32 +118,25 @@ export function AppointmentFormDialog({
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="patient">Paciente *</Label>
-                            <Select
+                            <PatientCombobox
+                                patients={patients}
                                 value={formData.patientId}
-                                onValueChange={(value) => onFormChange({ patientId: value })}
-                                required
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione um paciente" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {patients.map((patient) => (
-                                        <SelectItem key={patient.id} value={patient.id}>
-                                            {patient.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                onChange={(id) => onFormChange({ patientId: id })}
+                                onPatientCreated={(patient) => {
+                                    onPatientCreated?.(patient);
+                                    onFormChange({ patientId: patient.id });
+                                }}
+                            />
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="scheduledDate">Data e Hora *</Label>
-                            <Input
-                                id="scheduledDate"
-                                type="datetime-local"
+                            <DateTimePicker
                                 value={formData.scheduledDate}
-                                onChange={(e) => onFormChange({ scheduledDate: e.target.value })}
-                                required
+                                onChange={(value) => onFormChange({ scheduledDate: value })}
+                                placeholder="Selecione data e hora da consulta"
+                                fullyOccupiedDates={fullyOccupiedDates}
+                                isTimeSlotBusy={filteredIsTimeSlotBusy}
                             />
                         </div>
 

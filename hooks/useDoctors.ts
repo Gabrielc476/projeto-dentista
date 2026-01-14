@@ -5,6 +5,7 @@ import { doctorService } from '@/features/doctors/services/doctor.service';
 export function useDoctors() {
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
     const [filterType, setFilterType] = useState<DoctorType | 'all'>('all');
@@ -51,6 +52,8 @@ export function useDoctors() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (submitting) return;
+        setSubmitting(true);
         try {
             const cleanedData = { ...formData };
             if (!cleanedData.notes) delete cleanedData.notes;
@@ -65,6 +68,8 @@ export function useDoctors() {
         } catch (error) {
             console.error('Error saving doctor:', error);
             alert('Erro ao salvar médico');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -107,6 +112,7 @@ export function useDoctors() {
     return {
         doctors,
         loading,
+        submitting,
         dialogOpen,
         formData,
         editingDoctor,
