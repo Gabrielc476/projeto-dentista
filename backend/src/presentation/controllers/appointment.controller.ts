@@ -41,11 +41,15 @@ export class AppointmentController {
         @Query('patientId') patientId?: string,
         @Query('status') status?: string,
         @Query('date') date?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
     ) {
         const filters = {
             patientId,
             status,
             date,
+            startDate,
+            endDate,
         };
         return await this.listAppointmentsUseCase.execute(filters);
     }

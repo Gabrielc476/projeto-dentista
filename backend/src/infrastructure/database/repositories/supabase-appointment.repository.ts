@@ -91,7 +91,7 @@ export class SupabaseAppointmentRepository implements IAppointmentRepository {
         return this.mapToEntity(data, data.patients?.name, procedimentos);
     }
 
-    async findAll(filters?: { patientId?: string; status?: string; date?: Date }): Promise<Appointment[]> {
+    async findAll(filters?: { patientId?: string; status?: string; date?: Date; startDate?: Date; endDate?: Date }): Promise<Appointment[]> {
         let query = this.supabase
             .from('appointments')
             .select(`
@@ -116,6 +116,18 @@ export class SupabaseAppointmentRepository implements IAppointmentRepository {
             query = query
                 .gte('scheduled_date', startOfDay.toISOString())
                 .lte('scheduled_date', endOfDay.toISOString());
+        }
+
+        // Support for date range filtering
+        if (filters?.startDate && filters?.endDate) {
+            const start = new Date(filters.startDate);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(filters.endDate);
+            end.setHours(23, 59, 59, 999);
+
+            query = query
+                .gte('scheduled_date', start.toISOString())
+                .lte('scheduled_date', end.toISOString());
         }
 
         const { data, error } = await query.order('scheduled_date', { ascending: false });
