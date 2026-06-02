@@ -1,0 +1,32 @@
+# Render Blueprint - Configuração de deploy automático
+# https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: dentistflow-api
+    runtime: node
+    region: oregon
+    plan: free
+    branch: back
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /auth/csrf-token
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        sync: false # Define manualmente no dashboard
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true # Render gera automaticamente
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD_HASH
+        sync: false # Define manualmente no dashboard
+      - key: FRONTEND_URL
+        sync: false # Atualizar após deploy do Vercel
