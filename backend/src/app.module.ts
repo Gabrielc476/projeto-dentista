@@ -4,6 +4,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { InfrastructureModule } from './infrastructure/infrastructure.module';
 import { AuthModule } from './auth/auth.module';
 import { CsrfMiddleware } from './auth/middleware/csrf.middleware';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 // Controllers
 import { PatientController } from './presentation/controllers/patient.controller';
@@ -75,6 +77,7 @@ import { GetDashboardStatsUseCase } from './application/use-cases/dashboard/get-
     AuthModule,
   ],
   controllers: [
+    AppController,
     PatientController,
     ProcedureController,
     AppointmentController,
@@ -84,6 +87,7 @@ import { GetDashboardStatsUseCase } from './application/use-cases/dashboard/get-
     DashboardController,
   ],
   providers: [
+    AppService,
     // Patient Use Cases
     CreatePatientUseCase,
     GetPatientUseCase,
