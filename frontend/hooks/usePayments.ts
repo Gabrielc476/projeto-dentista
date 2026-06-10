@@ -3,8 +3,11 @@ import { Payment, PaymentFormData, Appointment, Patient } from '@/types';
 import { paymentService } from '@/features/payments/services/payment.service';
 import { appointmentService } from '@/features/appointments/services/appointment.service';
 import { patientService } from '@/features/patients/services/patient.service';
+import { toast } from 'sonner';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 export function usePayments() {
+    const confirm = useConfirm();
     const [payments, setPayments] = useState<Payment[]>([]);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [patients, setPatients] = useState<Patient[]>([]);
@@ -38,7 +41,7 @@ export function usePayments() {
             setPatients(patientsData);
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Erro ao carregar dados. Verifique se o backend está rodando.');
+            toast.error('Erro ao carregar dados. Verifique se o backend está rodando.');
         } finally {
             setLoading(false);
         }
@@ -69,14 +72,16 @@ export function usePayments() {
 
             if (editingPayment) {
                 await paymentService.update(editingPayment.id, cleanedData);
+                toast.success('Pagamento atualizado com sucesso!');
             } else {
                 await paymentService.create(cleanedData);
+                toast.success('Pagamento registrado com sucesso!');
             }
             closeDialog();
             loadData();
         } catch (error) {
             console.error('Error saving payment:', error);
-            alert('Erro ao salvar pagamento');
+            toast.error('Erro ao salvar pagamento');
         } finally {
             setSubmitting(false);
         }
@@ -99,13 +104,21 @@ export function usePayments() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja deletar este pagamento?')) return;
+        const proceed = await confirm({
+            title: 'Deletar Pagamento',
+            description: 'Tem certeza que deseja deletar este pagamento? Esta ação não pode ser desfeita.',
+            confirmText: 'Deletar',
+            cancelText: 'Cancelar',
+            variant: 'destructive'
+        });
+        if (!proceed) return;
 
         try {
             await paymentService.delete(id);
+            toast.success('Pagamento removido com sucesso!');
             loadData();
         } catch (error) {
-            alert('Erro ao deletar pagamento');
+            toast.error('Erro ao deletar pagamento');
         }
     };
 

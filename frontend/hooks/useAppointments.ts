@@ -4,6 +4,8 @@ import { appointmentService } from '@/features/appointments/services/appointment
 import { patientService } from '@/features/patients/services/patient.service';
 import { procedureService } from '@/features/procedures/services/procedure.service';
 import { clinicRentalService } from '@/features/clinic-rentals/services/clinic-rental.service';
+import { toast } from 'sonner';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 // Helper to determine shift from time
 function getShiftFromTime(date: Date): ShiftType {
@@ -22,6 +24,7 @@ interface ProcedureSelection {
 }
 
 export function useAppointments() {
+    const confirm = useConfirm();
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [patients, setPatients] = useState<Patient[]>([]);
     const [procedures, setProcedures] = useState<Procedure[]>([]);
@@ -64,7 +67,7 @@ export function useAppointments() {
             setProcedures(proceduresData);
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Erro ao carregar dados. Verifique se o backend está rodando.');
+            toast.error('Erro ao carregar dados. Verifique se o backend está rodando.');
         } finally {
             setLoading(false);
         }
@@ -90,7 +93,7 @@ export function useAppointments() {
         if (submitting) return;
 
         if (selectedProcedures.length === 0) {
-            alert('Selecione pelo menos um procedimento');
+            toast.warning('Selecione pelo menos um procedimento');
             return;
         }
 
@@ -116,14 +119,16 @@ export function useAppointments() {
 
         if (conflicts.length > 0) {
             const conflictTimes = conflicts.map(apt =>
-                `${apt.pacienteNome} - ${new Date(apt.scheduledDate).toLocaleString('pt-BR')}`
-            ).join('\n');
+                `${apt.pacienteNome} às ${new Date(apt.scheduledDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+            ).join(', ');
 
-            const proceed = window.confirm(
-                `⚠️ CONFLITO DE AGENDA!\n\n` +
-                `A consulta que você está agendando está muito próxima de:\n\n${conflictTimes}\n\n` +
-                `Deseja continuar mesmo assim?`
-            );
+            const proceed = await confirm({
+                title: '⚠️ Conflito de Agenda!',
+                description: `A consulta que você está agendando está muito próxima de: ${conflictTimes}. Deseja continuar mesmo assim?`,
+                confirmText: 'Continuar',
+                cancelText: 'Cancelar',
+                variant: 'destructive'
+            });
 
             if (!proceed) {
                 return;
@@ -149,14 +154,16 @@ export function useAppointments() {
 
             if (conflictingRentals.length > 0) {
                 const rentalInfo = conflictingRentals.map(r =>
-                    `${r.doctorName} (${r.doctorType === 'fixed' ? 'Fixo' : 'Avulso'}) - ${SHIFT_NAMES[r.shift]}`
-                ).join('\n');
+                    `${r.doctorName} (${r.doctorType === 'fixed' ? 'Fixo' : 'Avulso'})`
+                ).join(', ');
 
-                const proceed = window.confirm(
-                    `⚠️ ATENÇÃO: LOCAÇÃO EXISTENTE!\n\n` +
-                    `Já existe uma locação de sala para o turno ${SHIFT_NAMES[appointmentShift]} neste dia:\n\n${rentalInfo}\n\n` +
-                    `A sala pode estar ocupada por outro médico.\nDeseja continuar mesmo assim?`
-                );
+                const proceed = await confirm({
+                    title: '⚠️ Locação Existente!',
+                    description: `Já existe uma locação de sala para o turno ${SHIFT_NAMES[appointmentShift]} neste dia (${rentalInfo}). A sala pode estar ocupada por outro médico. Deseja continuar mesmo assim?`,
+                    confirmText: 'Continuar',
+                    cancelText: 'Cancelar',
+                    variant: 'destructive'
+                });
 
                 if (!proceed) {
                     return;
@@ -184,14 +191,16 @@ export function useAppointments() {
                     notes: formData.notes || undefined,
                     totalValue: formData.totalValue,
                 });
+                toast.success('Consulta atualizada com sucesso!');
             } else {
                 await appointmentService.create(cleanedData);
+                toast.success('Consulta agendada com sucesso!');
             }
             closeDialog();
             loadData();
         } catch (error) {
             console.error('Error saving appointment:', error);
-            alert('Erro ao salvar consulta');
+            toast.error('Erro ao salvar consulta');
         } finally {
             setSubmitting(false);
         }
@@ -221,24 +230,33 @@ export function useAppointments() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja deletar esta consulta?')) return;
+        const proceed = await confirm({
+            title: 'Deletar Consulta',
+            description: 'Tem certeza que deseja deletar esta consulta? Esta ação não pode ser desfeita.',
+            confirmText: 'Deletar',
+            cancelText: 'Cancelar',
+            variant: 'destructive'
+        });
+        if (!proceed) return;
 
         try {
             await appointmentService.delete(id);
+            toast.success('Consulta deletada com sucesso!');
             loadData();
         } catch (error) {
             console.error('Erro ao deletar consulta:', error);
-            alert('Erro ao deletar consulta');
+            toast.error('Erro ao deletar consulta');
         }
     };
 
     const handleStatusChange = async (id: string, newStatus: string) => {
         try {
             await appointmentService.update(id, { status: newStatus as any });
+            toast.success('Status da consulta atualizado!');
             loadData();
         } catch (error) {
             console.error('Erro ao atualizar status:', error);
-            alert('Erro ao atualizar status da consulta');
+            toast.error('Erro ao atualizar status da consulta');
         }
     };
 

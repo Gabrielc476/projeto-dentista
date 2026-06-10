@@ -13,6 +13,7 @@ import { Check, ChevronsUpDown, UserPlus, Search, Loader2, Sparkles } from 'luci
 import { cn } from '@/lib/utils';
 import { Patient, PatientFormData } from '@/types';
 import { patientService } from '@/features/patients/services/patient.service';
+import { toast } from 'sonner';
 
 interface PatientComboboxProps {
     patients: Patient[];
@@ -88,7 +89,7 @@ export function PatientCombobox({ patients, value, onChange, onPatientCreated }:
             }, 800);
         } catch (error) {
             console.error('Error creating patient:', error);
-            alert('Erro ao cadastrar paciente');
+            toast.error('Erro ao cadastrar paciente');
             setCreateStep('phone');
         }
     };

@@ -9,4 +9,6 @@ export interface IClinicRentalRepository {
     findByDateAndShift(date: Date, shift: ShiftType): Promise<ClinicRental | null>;
     update(id: string, rental: Partial<ClinicRental>): Promise<ClinicRental>;
     delete(id: string): Promise<void>;
+    createMany(rentals: Omit<ClinicRental, 'id' | 'createdAt' | 'updatedAt' | 'doctorName' | 'doctorType'>[]): Promise<void>;
+    deleteFutureAutomatedRentals(doctorId: string, cutoffDate: Date): Promise<void>;
 }

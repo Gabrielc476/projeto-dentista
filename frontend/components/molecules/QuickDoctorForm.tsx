@@ -15,6 +15,7 @@ import {
 import { X, Loader2, Check, Stethoscope, Calendar } from 'lucide-react';
 import { DoctorFormData, Doctor, DoctorType, ShiftType, SHIFT_NAMES, WEEKDAY_NAMES, WeekdayNumber } from '@/types';
 import { doctorService } from '@/features/doctors/services/doctor.service';
+import { toast } from 'sonner';
 
 const WEEKDAYS: WeekdayNumber[] = [1, 2, 3, 4, 5, 6, 0]; // Monday to Sunday
 
@@ -57,7 +58,7 @@ export function QuickDoctorForm({ onDoctorCreated, onCancel }: QuickDoctorFormPr
         if (submitting) return;
 
         if (!formData.name || !formData.phone) {
-            alert('Nome e telefone são obrigatórios');
+            toast.warning('Nome e telefone são obrigatórios');
             return;
         }
 
@@ -70,13 +71,21 @@ export function QuickDoctorForm({ onDoctorCreated, onCancel }: QuickDoctorFormPr
             // Aguarda feedback visual antes de fechar
             setTimeout(() => {
                 onDoctorCreated(newDoctor);
-                setFormData({ name: '', phone: '', type: 'temporary', fixedWeekdays: [], fixedShift: undefined });
+                setFormData({
+                    name: '',
+                    phone: '',
+                    type: 'temporary',
+                    fixedWeekdays: [],
+                    fixedShift: undefined,
+                    fixedStartDate: undefined,
+                    fixedEndDate: undefined,
+                });
                 setIsOpen(false);
                 setSuccess(false);
             }, 1500);
         } catch (error) {
             console.error('Error creating doctor:', error);
-            alert('Erro ao cadastrar médico');
+            toast.error('Erro ao cadastrar médico');
         } finally {
             setSubmitting(false);
         }
@@ -84,7 +93,15 @@ export function QuickDoctorForm({ onDoctorCreated, onCancel }: QuickDoctorFormPr
 
     const handleCancel = () => {
         setIsOpen(false);
-        setFormData({ name: '', phone: '', type: 'temporary', fixedWeekdays: [], fixedShift: undefined });
+        setFormData({
+            name: '',
+            phone: '',
+            type: 'temporary',
+            fixedWeekdays: [],
+            fixedShift: undefined,
+            fixedStartDate: undefined,
+            fixedEndDate: undefined,
+        });
         setSuccess(false);
         onCancel?.();
     };
@@ -233,6 +250,33 @@ export function QuickDoctorForm({ onDoctorCreated, onCancel }: QuickDoctorFormPr
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label className="text-xs font-medium">Data de Início</Label>
+                                <Input
+                                    type="date"
+                                    value={formData.fixedStartDate || ''}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, fixedStartDate: e.target.value || undefined }))}
+                                    className="h-8 text-xs bg-background/50 focus:bg-background transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label className="text-xs font-medium flex items-center justify-between">
+                                    <span>Data de Fim</span>
+                                    <span className="text-[10px] text-muted-foreground font-normal">(opcional)</span>
+                                </Label>
+                                <Input
+                                    type="date"
+                                    value={formData.fixedEndDate || ''}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, fixedEndDate: e.target.value || undefined }))}
+                                    className="h-8 text-xs bg-background/50 focus:bg-background transition-colors"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground italic leading-tight">
+                            * Se a data de fim estiver em branco, as locações serão geradas continuamente pelos próximos 12 meses.
+                        </p>
                     </div>
                 )}
 

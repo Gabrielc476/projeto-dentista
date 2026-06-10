@@ -21,11 +21,16 @@ export class SupabaseClinicRentalRepository implements IClinicRentalRepository {
     }
 
     async create(rental: Omit<ClinicRental, 'id' | 'createdAt' | 'updatedAt' | 'doctorName' | 'doctorType'>): Promise<ClinicRental> {
+        // Format to YYYY-MM-DD in local time to prevent timezone shift when inserting into PostgreSQL DATE
+        const dateStr = rental.date instanceof Date
+            ? `${rental.date.getFullYear()}-${String(rental.date.getMonth() + 1).padStart(2, '0')}-${String(rental.date.getDate()).padStart(2, '0')}`
+            : rental.date;
+
         const { data, error } = await this.supabase
             .from('clinic_rentals')
             .insert([{
                 doctor_id: rental.doctorId,
-                date: rental.date,
+                date: dateStr,
                 shift: rental.shift,
                 notes: rental.notes,
             }])
@@ -86,6 +91,8 @@ export class SupabaseClinicRentalRepository implements IClinicRentalRepository {
     }
 
     async findByDateRange(startDate: Date, endDate: Date): Promise<ClinicRental[]> {
+        const startStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+        const endStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
         const { data, error } = await this.supabase
             .from('clinic_rentals')
             .select(`
@@ -95,8 +102,8 @@ export class SupabaseClinicRentalRepository implements IClinicRentalRepository {
                     type
                 )
             `)
-            .gte('date', startDate.toISOString().split('T')[0])
-            .lte('date', endDate.toISOString().split('T')[0])
+            .gte('date', startStr)
+            .lte('date', endStr)
             .order('date', { ascending: true });
 
         if (error) {
@@ -127,6 +134,7 @@ export class SupabaseClinicRentalRepository implements IClinicRentalRepository {
     }
 
     async findByDateAndShift(date: Date, shift: ShiftType): Promise<ClinicRental | null> {
+        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         const { data, error } = await this.supabase
             .from('clinic_rentals')
             .select(`
@@ -136,7 +144,7 @@ export class SupabaseClinicRentalRepository implements IClinicRentalRepository {
                     type
                 )
             `)
-            .eq('date', date.toISOString().split('T')[0])
+            .eq('date', dateStr)
             .eq('shift', shift)
             .single();
 
@@ -154,7 +162,11 @@ export class SupabaseClinicRentalRepository implements IClinicRentalRepository {
         };
 
         if (rental.doctorId !== undefined) updateData.doctor_id = rental.doctorId;
-        if (rental.date !== undefined) updateData.date = rental.date;
+        if (rental.date !== undefined) {
+            updateData.date = rental.date instanceof Date
+                ? `${rental.date.getFullYear()}-${String(rental.date.getMonth() + 1).padStart(2, '0')}-${String(rental.date.getDate()).padStart(2, '0')}`
+                : rental.date;
+        }
         if (rental.shift !== undefined) updateData.shift = rental.shift;
         if (rental.notes !== undefined) updateData.notes = rental.notes;
 
@@ -186,6 +198,45 @@ export class SupabaseClinicRentalRepository implements IClinicRentalRepository {
 
         if (error) {
             throw new Error(`Error deleting clinic rental: ${error.message}`);
+        }
+    }
+
+    async createMany(rentals: Omit<ClinicRental, 'id' | 'createdAt' | 'updatedAt' | 'doctorName' | 'doctorType'>[]): Promise<void> {
+        if (rentals.length === 0) return;
+
+        const insertData = rentals.map(rental => {
+            const dateStr = rental.date instanceof Date
+                ? `${rental.date.getFullYear()}-${String(rental.date.getMonth() + 1).padStart(2, '0')}-${String(rental.date.getDate()).padStart(2, '0')}`
+                : rental.date;
+            return {
+                doctor_id: rental.doctorId,
+                date: dateStr,
+                shift: rental.shift,
+                notes: rental.notes,
+            };
+        });
+
+        const { error } = await this.supabase
+            .from('clinic_rentals')
+            .insert(insertData);
+
+        if (error) {
+            throw new Error(`Error creating multiple clinic rentals: ${error.message}`);
+        }
+    }
+
+    async deleteFutureAutomatedRentals(doctorId: string, cutoffDate: Date): Promise<void> {
+        const dateStr = `${cutoffDate.getFullYear()}-${String(cutoffDate.getMonth() + 1).padStart(2, '0')}-${String(cutoffDate.getDate()).padStart(2, '0')}`;
+
+        const { error } = await this.supabase
+            .from('clinic_rentals')
+            .delete()
+            .eq('doctor_id', doctorId)
+            .gte('date', dateStr)
+            .eq('notes', 'Gerado automaticamente');
+
+        if (error) {
+            throw new Error(`Error deleting future automated rentals: ${error.message}`);
         }
     }
 

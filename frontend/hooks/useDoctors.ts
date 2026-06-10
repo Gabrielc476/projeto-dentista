@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Doctor, DoctorFormData, DoctorType } from '@/types';
 import { doctorService } from '@/features/doctors/services/doctor.service';
+import { toast } from 'sonner';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 export function useDoctors() {
+    const confirm = useConfirm();
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -16,6 +19,8 @@ export function useDoctors() {
         notes: '',
         fixedWeekdays: [],
         fixedShift: undefined,
+        fixedStartDate: undefined,
+        fixedEndDate: undefined,
     });
 
     useEffect(() => {
@@ -30,7 +35,7 @@ export function useDoctors() {
             setDoctors(data);
         } catch (error) {
             console.error('Error loading doctors:', error);
-            alert('Erro ao carregar médicos. Verifique se o backend está rodando.');
+            toast.error('Erro ao carregar médicos. Verifique se o backend está rodando.');
         } finally {
             setLoading(false);
         }
@@ -57,17 +62,27 @@ export function useDoctors() {
         try {
             const cleanedData = { ...formData };
             if (!cleanedData.notes) delete cleanedData.notes;
+            
+            // Allow clearing date fields by sending null on update
+            if (!cleanedData.fixedStartDate) {
+                cleanedData.fixedStartDate = editingDoctor ? (null as any) : undefined;
+            }
+            if (!cleanedData.fixedEndDate) {
+                cleanedData.fixedEndDate = editingDoctor ? (null as any) : undefined;
+            }
 
             if (editingDoctor) {
                 await doctorService.update(editingDoctor.id, cleanedData);
+                toast.success('Médico atualizado com sucesso!');
             } else {
                 await doctorService.create(cleanedData);
+                toast.success('Médico cadastrado com sucesso!');
             }
             closeDialog();
             loadDoctors();
         } catch (error) {
             console.error('Error saving doctor:', error);
-            alert('Erro ao salvar médico');
+            toast.error('Erro ao salvar médico');
         } finally {
             setSubmitting(false);
         }
@@ -75,6 +90,14 @@ export function useDoctors() {
 
     const handleEdit = (doctor: Doctor) => {
         setEditingDoctor(doctor);
+        
+        const formatDateString = (dateVal: any) => {
+            if (!dateVal) return undefined;
+            const d = new Date(dateVal);
+            if (isNaN(d.getTime())) return undefined;
+            return d.toISOString().split('T')[0];
+        };
+
         setFormData({
             name: doctor.name,
             phone: doctor.phone,
@@ -82,18 +105,28 @@ export function useDoctors() {
             notes: doctor.notes || '',
             fixedWeekdays: doctor.fixedWeekdays || [],
             fixedShift: doctor.fixedShift,
+            fixedStartDate: formatDateString(doctor.fixedStartDate),
+            fixedEndDate: formatDateString(doctor.fixedEndDate),
         });
         setDialogOpen(true);
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja deletar este médico? Isso também removerá todas as locações associadas.')) return;
+        const proceed = await confirm({
+            title: 'Deletar Médico',
+            description: 'Tem certeza que deseja deletar este médico? Isso também removerá todas as locações associadas e esta ação não poderá ser desfeita.',
+            confirmText: 'Deletar',
+            cancelText: 'Cancelar',
+            variant: 'destructive'
+        });
+        if (!proceed) return;
 
         try {
             await doctorService.delete(id);
+            toast.success('Médico removido com sucesso!');
             loadDoctors();
         } catch (error) {
-            alert('Erro ao deletar médico');
+            toast.error('Erro ao deletar médico');
         }
     };
 
@@ -106,6 +139,8 @@ export function useDoctors() {
             notes: '',
             fixedWeekdays: [],
             fixedShift: undefined,
+            fixedStartDate: undefined,
+            fixedEndDate: undefined,
         });
     };
 

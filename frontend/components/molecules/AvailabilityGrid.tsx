@@ -85,18 +85,11 @@ function isSlotReserved(
         let rentalDateStr: string;
 
         if (r.date instanceof Date) {
-            // Date object - use local time
-            rentalDateStr = `${r.date.getFullYear()}-${String(r.date.getMonth() + 1).padStart(2, '0')}-${String(r.date.getDate()).padStart(2, '0')}`;
+            // Date object - use UTC to get the true calendar day stored in DB!
+            rentalDateStr = `${r.date.getUTCFullYear()}-${String(r.date.getUTCMonth() + 1).padStart(2, '0')}-${String(r.date.getUTCDate()).padStart(2, '0')}`;
         } else if (typeof r.date === 'string') {
             // String - could be ISO or YYYY-MM-DD
-            if (r.date.includes('T')) {
-                // ISO string - parse and use local date
-                const d = new Date(r.date);
-                rentalDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            } else {
-                // Already in YYYY-MM-DD format
-                rentalDateStr = r.date;
-            }
+            rentalDateStr = r.date.split('T')[0];
         } else {
             return false;
         }

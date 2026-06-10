@@ -92,7 +92,22 @@ export default function MedicosPage() {
             .map((d: WeekdayNumber) => WEEKDAY_NAMES[d]?.substring(0, 3))
             .join(', ');
         const shift = SHIFT_NAMES[doctor.fixedShift as ShiftType];
-        return `${days} - ${shift}`;
+        
+        let period = '';
+        if (doctor.fixedStartDate || doctor.fixedEndDate) {
+            const formatDate = (dateInput: any) => {
+                if (!dateInput) return '';
+                const cleanStr = typeof dateInput === 'string' ? dateInput.split('T')[0] : new Date(dateInput).toISOString().split('T')[0];
+                const parts = cleanStr.split('-');
+                if (parts.length < 3) return '';
+                return `${parts[2]}/${parts[1]}/${parts[0].substring(2)}`; // DD/MM/YY
+            };
+            const start = doctor.fixedStartDate ? formatDate(doctor.fixedStartDate) : 'Hoje';
+            const end = doctor.fixedEndDate ? formatDate(doctor.fixedEndDate) : 'Sem fim';
+            period = ` (${start} a ${end})`;
+        }
+        
+        return `${days} - ${shift}${period}`;
     };
 
     return (
@@ -250,7 +265,7 @@ export default function MedicosPage() {
                             </div>
 
                             {/* Fixed schedule fields - only shown for fixed doctors */}
-                            {formData.type === 'fixed' && !editingDoctor && (
+                            {formData.type === 'fixed' && (
                                 <Card className="border-dashed border-emerald-500/50 bg-emerald-500/5">
                                     <CardContent className="pt-4 space-y-4">
                                         <div className="flex items-center gap-2 text-emerald-600">
@@ -297,8 +312,34 @@ export default function MedicosPage() {
                                             </Select>
                                         </div>
 
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="fixedStartDate">Data de Início</Label>
+                                                <Input
+                                                    id="fixedStartDate"
+                                                    type="date"
+                                                    value={formData.fixedStartDate || ''}
+                                                    onChange={(e) => handleFormChange({ ...formData, fixedStartDate: e.target.value || undefined })}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="fixedEndDate" className="flex items-center justify-between">
+                                                    <span>Data de Fim</span>
+                                                    <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+                                                </Label>
+                                                <Input
+                                                    id="fixedEndDate"
+                                                    type="date"
+                                                    value={formData.fixedEndDate || ''}
+                                                    onChange={(e) => handleFormChange({ ...formData, fixedEndDate: e.target.value || undefined })}
+                                                />
+                                            </div>
+                                        </div>
+
                                         <p className="text-xs text-muted-foreground">
-                                            As locações serão geradas automaticamente do dia atual até o final do mês.
+                                            {editingDoctor 
+                                                ? 'Atenção: Ao alterar a agenda fixa, as locações automáticas futuras (a partir de hoje) serão removidas e novas serão geradas de acordo com as datas e dias escolhidos.'
+                                                : 'As locações serão geradas do dia de início (ou hoje) até a data de fim. Se a data de fim for em branco, as locações serão geradas continuamente pelos próximos 12 meses.'}
                                         </p>
                                     </CardContent>
                                 </Card>

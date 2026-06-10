@@ -20,6 +20,7 @@ import { Check, ChevronsUpDown, Stethoscope, Search, Loader2, Sparkles } from 'l
 import { cn } from '@/lib/utils';
 import { Doctor, DoctorFormData, DoctorType } from '@/types';
 import { doctorService } from '@/features/doctors/services/doctor.service';
+import { toast } from 'sonner';
 
 interface DoctorComboboxProps {
     doctors: Doctor[];
@@ -98,7 +99,7 @@ export function DoctorCombobox({ doctors, value, onChange, onDoctorCreated }: Do
             }, 800);
         } catch (error) {
             console.error('Error creating doctor:', error);
-            alert('Erro ao cadastrar médico');
+            toast.error('Erro ao cadastrar médico');
             setCreateStep('details');
         }
     };

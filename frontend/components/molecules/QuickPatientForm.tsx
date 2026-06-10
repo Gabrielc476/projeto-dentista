@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, X, Loader2, UserPlus, Check } from 'lucide-react';
 import { PatientFormData, Patient } from '@/types';
 import { patientService } from '@/features/patients/services/patient.service';
+import { toast } from 'sonner';
 
 interface QuickPatientFormProps {
     onPatientCreated: (patient: Patient) => void;
@@ -36,7 +37,7 @@ export function QuickPatientForm({ onPatientCreated, onCancel }: QuickPatientFor
         if (submitting) return;
 
         if (!formData.name || !formData.phone) {
-            alert('Nome e telefone são obrigatórios');
+            toast.warning('Nome e telefone são obrigatórios');
             return;
         }
 
@@ -55,7 +56,7 @@ export function QuickPatientForm({ onPatientCreated, onCancel }: QuickPatientFor
             }, 1500);
         } catch (error) {
             console.error('Error creating patient:', error);
-            alert('Erro ao cadastrar paciente');
+            toast.error('Erro ao cadastrar paciente');
         } finally {
             setSubmitting(false);
         }

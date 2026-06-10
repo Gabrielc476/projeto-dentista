@@ -70,7 +70,7 @@ export class SupabasePaymentRepository implements IPaymentRepository {
             throw new Error(`Error finding payments: ${error.message}`);
         }
 
-        return data.map(this.mapToEntity);
+        return (data || []).map(p => this.mapToEntity(p));
     }
 
     async findPending(): Promise<Payment[]> {
@@ -84,7 +84,7 @@ export class SupabasePaymentRepository implements IPaymentRepository {
             throw new Error(`Error finding pending payments: ${error.message}`);
         }
 
-        return data.map(this.mapToEntity);
+        return (data || []).map(p => this.mapToEntity(p));
     }
 
     async update(id: string, payment: Partial<Payment>): Promise<Payment> {

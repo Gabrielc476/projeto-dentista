@@ -16,6 +16,7 @@ import { AvailabilityGrid, getWeeksData } from './AvailabilityGrid';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { clinicRentalService } from '@/features/clinic-rentals/services/clinic-rental.service';
+import { toast } from 'sonner';
 
 interface AvailabilityExportModalProps {
     open: boolean;
@@ -89,9 +90,10 @@ export function AvailabilityExportModal({ open, onOpenChange }: AvailabilityExpo
 
             const fileName = `disponibilidade-locacao-${formatFileDate(new Date())}.pdf`;
             pdf.save(fileName);
+            toast.success('PDF exportado com sucesso!');
         } catch (error) {
             console.error('Error exporting PDF:', error);
-            alert('Erro ao exportar PDF');
+            toast.error('Erro ao exportar PDF');
         } finally {
             setExporting(null);
         }
@@ -117,9 +119,10 @@ export function AvailabilityExportModal({ open, onOpenChange }: AvailabilityExpo
             link.download = `disponibilidade-locacao-${formatFileDate(new Date())}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
+            toast.success('Imagem exportada com sucesso!');
         } catch (error) {
             console.error('Error exporting image:', error);
-            alert('Erro ao exportar imagem');
+            toast.error('Erro ao exportar imagem');
         } finally {
             setExporting(null);
         }

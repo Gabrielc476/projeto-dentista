@@ -319,7 +319,6 @@
 
   /* Premium Dialog/Modal */
   .glass-dialog {
-    position: relative;
     background: linear-gradient(135deg,
         rgba(255, 255, 255, 0.92) 0%,
         rgba(255, 255, 255, 0.85) 100%);

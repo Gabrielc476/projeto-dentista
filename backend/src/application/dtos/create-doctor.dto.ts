@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsIn, IsArray, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsIn, IsArray, IsNumber, IsDateString } from 'class-validator';
 
 export class CreateDoctorDto {
     @IsString()
@@ -28,5 +28,13 @@ export class CreateDoctorDto {
     @IsString()
     @IsIn(['morning', 'afternoon', 'evening'])
     fixedShift?: 'morning' | 'afternoon' | 'evening';
+
+    @IsOptional()
+    @IsDateString()
+    fixedStartDate?: string;
+
+    @IsOptional()
+    @IsDateString()
+    fixedEndDate?: string;
 }
 

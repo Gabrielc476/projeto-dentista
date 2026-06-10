@@ -14,6 +14,8 @@ export class Doctor {
     // Recurrence fields for fixed doctors
     fixedWeekdays?: WeekdayNumber[]; // Days of week the doctor rents (e.g., [1, 3] = Monday, Wednesday)
     fixedShift?: ShiftType;          // Which shift they always rent
+    fixedStartDate?: Date | null;
+    fixedEndDate?: Date | null;
 
     createdAt: Date;
     updatedAt: Date;

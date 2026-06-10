@@ -4,6 +4,7 @@ import { Appointment, Patient, Payment } from '@/types';
 import { appointmentService } from '@/features/appointments/services/appointment.service';
 import { patientService } from '@/features/patients/services/patient.service';
 import { paymentService } from '@/features/payments/services/payment.service';
+import { toast } from 'sonner';
 
 export function useAppointmentDetail(appointmentId: string) {
     const router = useRouter();
@@ -35,7 +36,7 @@ export function useAppointmentDetail(appointmentId: string) {
             setPayments(appointmentPayments);
         } catch (error) {
             console.error('Error loading appointment data:', error);
-            alert('Erro ao carregar dados da consulta');
+            toast.error('Erro ao carregar dados da consulta');
         } finally {
             setLoading(false);
         }

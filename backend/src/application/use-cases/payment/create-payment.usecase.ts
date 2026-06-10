@@ -26,12 +26,20 @@ export class CreatePaymentUseCase {
 
         const payment = await this.paymentRepository.create(paymentData);
 
-        // Sync payment status to appointment
+        // Sync payment status to appointment based on accumulated payments
         if (dto.appointmentId) {
-            const paymentStatus = dto.status === 'completed' ? 'completed' : 'pending';
-            await this.appointmentRepository.update(dto.appointmentId, {
-                paymentStatus,
-            });
+            const appointment = await this.appointmentRepository.findById(dto.appointmentId);
+            if (appointment) {
+                const payments = await this.paymentRepository.findAll({ appointmentId: dto.appointmentId });
+                const totalPaid = payments
+                    .filter(p => p.status === 'completed')
+                    .reduce((sum, p) => sum + Number(p.amount), 0);
+
+                const paymentStatus = totalPaid >= (appointment.totalValue ?? 0) ? 'completed' : 'pending';
+                await this.appointmentRepository.update(dto.appointmentId, {
+                    paymentStatus,
+                });
+            }
         }
 
         return payment;

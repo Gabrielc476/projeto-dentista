@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Procedure, ProcedureFormData } from '@/types';
 import { procedureService } from '@/features/procedures/services/procedure.service';
+import { toast } from 'sonner';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 export function useProcedures() {
+    const confirm = useConfirm();
     const [procedures, setProcedures] = useState<Procedure[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -25,7 +28,7 @@ export function useProcedures() {
             setProcedures(data);
         } catch (error) {
             console.error('Error loading procedures:', error);
-            alert('Erro ao carregar procedimentos. Verifique se o backend está rodando.');
+            toast.error('Erro ao carregar procedimentos. Verifique se o backend está rodando.');
         } finally {
             setLoading(false);
         }
@@ -58,14 +61,16 @@ export function useProcedures() {
 
             if (editingProcedure) {
                 await procedureService.update(editingProcedure.id, cleanedData);
+                toast.success('Procedimento atualizado com sucesso!');
             } else {
                 await procedureService.create(cleanedData);
+                toast.success('Procedimento cadastrado com sucesso!');
             }
             closeDialog();
             loadProcedures();
         } catch (error) {
             console.error('Error saving procedure:', error);
-            alert('Erro ao salvar procedimento');
+            toast.error('Erro ao salvar procedimento');
         } finally {
             setSubmitting(false);
         }
@@ -83,13 +88,21 @@ export function useProcedures() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja deletar este procedimento?')) return;
+        const proceed = await confirm({
+            title: 'Deletar Procedimento',
+            description: 'Tem certeza que deseja deletar este procedimento? Esta ação não pode ser desfeita.',
+            confirmText: 'Deletar',
+            cancelText: 'Cancelar',
+            variant: 'destructive'
+        });
+        if (!proceed) return;
 
         try {
             await procedureService.delete(id);
+            toast.success('Procedimento removido com sucesso!');
             loadProcedures();
         } catch (error) {
-            alert('Erro ao deletar procedimento');
+            toast.error('Erro ao deletar procedimento');
         }
     };
 

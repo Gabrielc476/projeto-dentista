@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 
 interface StatCardProps {
-    icon: string;
+    icon: React.ReactNode;
     label: string;
     value: string | number;
     iconColor: string;
@@ -20,9 +20,10 @@ export function StatCard({ icon, label, value, iconColor, trend }: StatCardProps
                     )}
                 </div>
                 <div className={`icon-circle ${iconColor}`}>
-                    <span className="text-2xl">{icon}</span>
+                    {icon}
                 </div>
             </div>
         </Card>
     );
 }
+

@@ -26,12 +26,23 @@ async function bootstrap() {
   // Cookie parser for JWT HttpOnly cookies
   app.use(cookieParser());
 
-  // Enable CORS for frontend access with credentials
-  app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  // Enable CORS dynamically to allow health check route from any origin (e.g., uptime cron jobs)
+  app.enableCors((req: any, callback: any) => {
+    const isHealthCheck = req.path === '/health' || req.url === '/health' || req.path?.endsWith('/health');
+    const corsOptions = isHealthCheck
+      ? {
+          origin: true, // Reflects the origin of the request, allowing any origin to hit /health
+          credentials: false,
+          methods: ['GET', 'OPTIONS'],
+          allowedHeaders: ['Content-Type'],
+        }
+      : {
+          origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+          credentials: true,
+          methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+          allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+        };
+    callback(null, corsOptions);
   });
 
   // Enable validation pipes with whitelist to strip unknown properties

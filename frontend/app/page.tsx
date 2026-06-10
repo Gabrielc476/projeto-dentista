@@ -6,6 +6,17 @@ import { NextAppointmentCard } from '@/components/organisms/NextAppointmentCard'
 import { UpcomingAppointmentsTable } from '@/components/organisms/UpcomingAppointmentsTable';
 import { LoadingState } from '@/components/molecules/LoadingState';
 import { useRouter } from 'next/navigation';
+import {
+  Users,
+  Calendar,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  UserPlus,
+  CalendarPlus,
+  Activity,
+  CreditCard
+} from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
@@ -28,34 +39,34 @@ export default function HomePage() {
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
-          icon="👥"
+          icon={<Users className="w-5 h-5" />}
           label="Total de Pacientes"
           value={kpis.totalPatients}
-          iconColor="bg-blue-100 text-blue-600"
+          iconColor="bg-blue-500/10 text-blue-500 dark:text-blue-400"
         />
         <StatCard
-          icon="📅"
+          icon={<Calendar className="w-5 h-5" />}
           label="Consultas Hoje"
           value={kpis.todayAppointments}
-          iconColor="bg-teal-100 text-teal-600"
+          iconColor="bg-teal-500/10 text-teal-500 dark:text-teal-400"
         />
         <StatCard
-          icon="✅"
+          icon={<CheckCircle className="w-5 h-5" />}
           label="Procedimentos Concluídos"
           value={kpis.completedProcedures}
-          iconColor="bg-green-100 text-green-600"
+          iconColor="bg-green-500/10 text-green-500 dark:text-green-400"
         />
         <StatCard
-          icon="⏳"
+          icon={<Clock className="w-5 h-5" />}
           label="Pagamentos Pendentes"
           value={kpis.pendingPayments}
-          iconColor="bg-orange-100 text-orange-600"
+          iconColor="bg-amber-500/10 text-amber-500 dark:text-amber-400"
         />
         <StatCard
-          icon="💰"
+          icon={<DollarSign className="w-5 h-5" />}
           label="Receita Mensal"
           value={`R$ ${kpis.monthlyRevenue.toFixed(0)}`}
-          iconColor="bg-emerald-100 text-emerald-600"
+          iconColor="bg-emerald-500/10 text-emerald-500 dark:text-emerald-400"
           trend="Este mês"
         />
       </div>
@@ -84,10 +95,10 @@ export default function HomePage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <button
           onClick={() => router.push('/pacientes')}
-          className="p-6 bg-white rounded-xl border border-border hover:border-primary hover:shadow-md transition-all group"
+          className="p-6 glass-card rounded-xl text-left border border-border hover:border-primary/50 transition-all duration-300 group cursor-pointer"
         >
-          <div className="icon-circle bg-primary/10 text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
-            <span className="text-2xl">👤</span>
+          <div className="icon-circle bg-primary/10 text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+            <UserPlus className="w-5 h-5" />
           </div>
           <h3 className="font-semibold text-foreground">Novo Paciente</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -97,10 +108,10 @@ export default function HomePage() {
 
         <button
           onClick={() => router.push('/consultas')}
-          className="p-6 bg-white rounded-xl border border-border hover:border-primary hover:shadow-md transition-all group"
+          className="p-6 glass-card rounded-xl text-left border border-border hover:border-primary/50 transition-all duration-300 group cursor-pointer"
         >
-          <div className="icon-circle bg-primary/10 text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
-            <span className="text-2xl">📅</span>
+          <div className="icon-circle bg-primary/10 text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+            <CalendarPlus className="w-5 h-5" />
           </div>
           <h3 className="font-semibold text-foreground">Agendar Consulta</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -110,10 +121,10 @@ export default function HomePage() {
 
         <button
           onClick={() => router.push('/procedimentos')}
-          className="p-6 bg-white rounded-xl border border-border hover:border-primary hover:shadow-md transition-all group"
+          className="p-6 glass-card rounded-xl text-left border border-border hover:border-primary/50 transition-all duration-300 group cursor-pointer"
         >
-          <div className="icon-circle bg-primary/10 text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
-            <span className="text-2xl">🦷</span>
+          <div className="icon-circle bg-primary/10 text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+            <Activity className="w-5 h-5" />
           </div>
           <h3 className="font-semibold text-foreground">Procedimentos</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -123,10 +134,10 @@ export default function HomePage() {
 
         <button
           onClick={() => router.push('/pagamentos')}
-          className="p-6 bg-white rounded-xl border border-border hover:border-primary hover:shadow-md transition-all group"
+          className="p-6 glass-card rounded-xl text-left border border-border hover:border-primary/50 transition-all duration-300 group cursor-pointer"
         >
-          <div className="icon-circle bg-primary/10 text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
-            <span className="text-2xl">💵</span>
+          <div className="icon-circle bg-primary/10 text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+            <CreditCard className="w-5 h-5" />
           </div>
           <h3 className="font-semibold text-foreground">Pagamentos</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -137,3 +148,4 @@ export default function HomePage() {
     </div>
   );
 }
+

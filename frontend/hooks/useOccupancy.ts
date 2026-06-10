@@ -37,14 +37,24 @@ export function useOccupancy() {
     const [rentals, setRentals] = useState<ClinicRental[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Fetch all appointments and rentals
+    // Fetch appointments and rentals in a healthy range (30 days ago to 90 days ahead)
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
+            const now = new Date();
+            const start = new Date();
+            start.setDate(now.getDate() - 30); // 30 dias atrás
+            const end = new Date();
+            end.setDate(now.getDate() + 90);   // 90 dias no futuro
+
+            const startStr = start.toISOString().split('T')[0];
+            const endStr = end.toISOString().split('T')[0];
+
             const [appointmentsData, rentalsData] = await Promise.all([
-                appointmentService.getAll(),
-                clinicRentalService.getAll(),
+                appointmentService.getByDateRange(startStr, endStr),
+                clinicRentalService.getAll(startStr, endStr),
             ]);
+
             const filteredAppointments = appointmentsData.filter(a => a.status !== 'cancelled');
             setAppointments(filteredAppointments);
             setRentals(rentalsData);

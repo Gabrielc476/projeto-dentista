@@ -14,13 +14,13 @@ export class ApiClient {
         this.baseUrl = API_URL;
     }
 
-    private getHeaders(includeBody: boolean = false): HeadersInit {
+    private getHeaders(requiresCsrf: boolean = false): HeadersInit {
         const headers: HeadersInit = {
             'Content-Type': 'application/json',
         };
 
         // Add CSRF token for state-changing requests
-        if (includeBody) {
+        if (requiresCsrf) {
             const csrfToken = getCsrfToken();
             if (csrfToken) {
                 headers['X-CSRF-Token'] = csrfToken;
@@ -28,6 +28,18 @@ export class ApiClient {
         }
 
         return headers;
+    }
+
+    private async refreshCsrfToken(): Promise<boolean> {
+        try {
+            const response = await fetch(`${this.baseUrl}/auth/csrf-token`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            return response.ok;
+        } catch {
+            return false;
+        }
     }
 
     async get<T>(endpoint: string): Promise<T> {
@@ -52,12 +64,25 @@ export class ApiClient {
     }
 
     async post<T>(endpoint: string, data: any): Promise<T> {
-        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        let response = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'POST',
             headers: this.getHeaders(true),
             credentials: 'include',
             body: JSON.stringify(data),
         });
+
+        // Auto-refresh CSRF token if forbidden (CSRF missing/invalid)
+        if (response.status === 403) {
+            const refreshed = await this.refreshCsrfToken();
+            if (refreshed) {
+                response = await fetch(`${this.baseUrl}${endpoint}`, {
+                    method: 'POST',
+                    headers: this.getHeaders(true),
+                    credentials: 'include',
+                    body: JSON.stringify(data),
+                });
+            }
+        }
 
         if (response.status === 401) {
             if (typeof window !== 'undefined') {
@@ -82,12 +107,25 @@ export class ApiClient {
     }
 
     async put<T>(endpoint: string, data: any): Promise<T> {
-        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        let response = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'PUT',
             headers: this.getHeaders(true),
             credentials: 'include',
             body: JSON.stringify(data),
         });
+
+        // Auto-refresh CSRF token if forbidden (CSRF missing/invalid)
+        if (response.status === 403) {
+            const refreshed = await this.refreshCsrfToken();
+            if (refreshed) {
+                response = await fetch(`${this.baseUrl}${endpoint}`, {
+                    method: 'PUT',
+                    headers: this.getHeaders(true),
+                    credentials: 'include',
+                    body: JSON.stringify(data),
+                });
+            }
+        }
 
         if (response.status === 401) {
             if (typeof window !== 'undefined') {
@@ -104,11 +142,23 @@ export class ApiClient {
     }
 
     async delete(endpoint: string): Promise<void> {
-        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        let response = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'DELETE',
             headers: this.getHeaders(true),
             credentials: 'include',
         });
+
+        // Auto-refresh CSRF token if forbidden (CSRF missing/invalid)
+        if (response.status === 403) {
+            const refreshed = await this.refreshCsrfToken();
+            if (refreshed) {
+                response = await fetch(`${this.baseUrl}${endpoint}`, {
+                    method: 'DELETE',
+                    headers: this.getHeaders(true),
+                    credentials: 'include',
+                });
+            }
+        }
 
         if (response.status === 401) {
             if (typeof window !== 'undefined') {
@@ -135,6 +185,13 @@ export class ApiClient {
             }
 
             const data = await response.json();
+
+            // Sincroniza o token CSRF caso o cookie tenha expirado/sido apagado
+            const csrfToken = getCsrfToken();
+            if (!csrfToken) {
+                await this.refreshCsrfToken();
+            }
+
             return { authenticated: true, username: data.username };
         } catch {
             return { authenticated: false };

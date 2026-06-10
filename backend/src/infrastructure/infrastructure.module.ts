@@ -5,6 +5,7 @@ import { SupabaseAppointmentRepository } from './database/repositories/supabase-
 import { SupabasePaymentRepository } from './database/repositories/supabase-payment.repository';
 import { SupabaseDoctorRepository } from './database/repositories/supabase-doctor.repository';
 import { SupabaseClinicRentalRepository } from './database/repositories/supabase-clinic-rental.repository';
+import { SupabaseDashboardRepository } from './database/repositories/supabase-dashboard.repository';
 
 @Module({
     providers: [
@@ -32,6 +33,10 @@ import { SupabaseClinicRentalRepository } from './database/repositories/supabase
             provide: 'IClinicRentalRepository',
             useClass: SupabaseClinicRentalRepository,
         },
+        {
+            provide: 'IDashboardRepository',
+            useClass: SupabaseDashboardRepository,
+        },
     ],
     exports: [
         'IPatientRepository',
@@ -40,6 +45,7 @@ import { SupabaseClinicRentalRepository } from './database/repositories/supabase
         'IPaymentRepository',
         'IDoctorRepository',
         'IClinicRentalRepository',
+        'IDashboardRepository',
     ],
 })
 export class InfrastructureModule { }

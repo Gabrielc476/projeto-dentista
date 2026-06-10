@@ -9,11 +9,25 @@ export function useCalendar() {
 
     useEffect(() => {
         loadAppointments();
-    }, []);
+    }, [currentDate]);
 
     const loadAppointments = async () => {
+        setLoading(true);
         try {
-            const data = await appointmentService.getAll();
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Calcula a data de início (1º do mês menos 7 dias de margem para as semanas anteriores)
+            const start = new Date(year, month, 1);
+            start.setDate(start.getDate() - 7);
+            const startStr = start.toISOString().split('T')[0];
+
+            // Calcula a data de fim (último dia do mês mais 7 dias de margem para as semanas posteriores)
+            const end = new Date(year, month + 1, 0);
+            end.setDate(end.getDate() + 7);
+            const endStr = end.toISOString().split('T')[0];
+
+            const data = await appointmentService.getByDateRange(startStr, endStr);
             setAppointments(data);
         } catch (error) {
             console.error('Error loading appointments:', error);
@@ -107,5 +121,6 @@ export function useCalendar() {
         goToNextMonth,
         goToPreviousMonth,
         goToToday,
+        refetch: loadAppointments,
     };
 }

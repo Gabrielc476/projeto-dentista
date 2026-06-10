@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsIn, IsArray, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsIn, IsArray, IsNumber, IsDateString } from 'class-validator';
 
 export class UpdateDoctorDto {
     @IsOptional()
@@ -27,5 +27,13 @@ export class UpdateDoctorDto {
     @IsString()
     @IsIn(['morning', 'afternoon', 'evening'])
     fixedShift?: 'morning' | 'afternoon' | 'evening';
+
+    @IsOptional()
+    @IsDateString()
+    fixedStartDate?: string;
+
+    @IsOptional()
+    @IsDateString()
+    fixedEndDate?: string;
 }
 

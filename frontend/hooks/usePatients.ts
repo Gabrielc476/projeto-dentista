@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Patient, PatientFormData } from '@/types';
 import { patientService } from '@/features/patients/services/patient.service';
+import { toast } from 'sonner';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 export function usePatients() {
+    const confirm = useConfirm();
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false); // Previne duplo clique
@@ -27,7 +30,7 @@ export function usePatients() {
             setPatients(data);
         } catch (error) {
             console.error('Error loading patients:', error);
-            alert('Erro ao carregar pacientes. Verifique se o backend está rodando.');
+            toast.error('Erro ao carregar pacientes. Verifique se o backend está rodando.');
         } finally {
             setLoading(false);
         }
@@ -65,14 +68,16 @@ export function usePatients() {
 
             if (editingPatient) {
                 await patientService.update(editingPatient.id, cleanedData);
+                toast.success('Paciente atualizado com sucesso!');
             } else {
                 await patientService.create(cleanedData);
+                toast.success('Paciente cadastrado com sucesso!');
             }
             closeDialog();
             loadPatients();
         } catch (error) {
             console.error('Error saving patient:', error);
-            alert('Erro ao salvar paciente');
+            toast.error('Erro ao salvar paciente');
         } finally {
             setSubmitting(false);
         }
@@ -92,13 +97,21 @@ export function usePatients() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja deletar este paciente?')) return;
+        const proceed = await confirm({
+            title: 'Deletar Paciente',
+            description: 'Tem certeza que deseja deletar este paciente? Esta ação não pode ser desfeita.',
+            confirmText: 'Deletar',
+            cancelText: 'Cancelar',
+            variant: 'destructive'
+        });
+        if (!proceed) return;
 
         try {
             await patientService.delete(id);
+            toast.success('Paciente removido com sucesso!');
             loadPatients();
         } catch (error) {
-            alert('Erro ao deletar paciente');
+            toast.error('Erro ao deletar paciente');
         }
     };
 

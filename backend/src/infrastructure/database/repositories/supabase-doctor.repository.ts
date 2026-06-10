@@ -21,6 +21,14 @@ export class SupabaseDoctorRepository implements IDoctorRepository {
     }
 
     async create(doctor: Omit<Doctor, 'id' | 'createdAt' | 'updatedAt'>): Promise<Doctor> {
+        const startDateStr = doctor.fixedStartDate instanceof Date
+            ? `${doctor.fixedStartDate.getFullYear()}-${String(doctor.fixedStartDate.getMonth() + 1).padStart(2, '0')}-${String(doctor.fixedStartDate.getDate()).padStart(2, '0')}`
+            : doctor.fixedStartDate;
+
+        const endDateStr = doctor.fixedEndDate instanceof Date
+            ? `${doctor.fixedEndDate.getFullYear()}-${String(doctor.fixedEndDate.getMonth() + 1).padStart(2, '0')}-${String(doctor.fixedEndDate.getDate()).padStart(2, '0')}`
+            : doctor.fixedEndDate;
+
         const { data, error } = await this.supabase
             .from('doctors')
             .insert([{
@@ -30,6 +38,8 @@ export class SupabaseDoctorRepository implements IDoctorRepository {
                 notes: doctor.notes,
                 fixed_weekdays: doctor.fixedWeekdays,
                 fixed_shift: doctor.fixedShift,
+                fixed_start_date: startDateStr,
+                fixed_end_date: endDateStr,
             }])
             .select()
             .single();
@@ -94,6 +104,17 @@ export class SupabaseDoctorRepository implements IDoctorRepository {
         if (doctor.notes !== undefined) updateData.notes = doctor.notes;
         if (doctor.fixedWeekdays !== undefined) updateData.fixed_weekdays = doctor.fixedWeekdays;
         if (doctor.fixedShift !== undefined) updateData.fixed_shift = doctor.fixedShift;
+        
+        if (doctor.fixedStartDate !== undefined) {
+            updateData.fixed_start_date = doctor.fixedStartDate instanceof Date
+                ? `${doctor.fixedStartDate.getFullYear()}-${String(doctor.fixedStartDate.getMonth() + 1).padStart(2, '0')}-${String(doctor.fixedStartDate.getDate()).padStart(2, '0')}`
+                : doctor.fixedStartDate;
+        }
+        if (doctor.fixedEndDate !== undefined) {
+            updateData.fixed_end_date = doctor.fixedEndDate instanceof Date
+                ? `${doctor.fixedEndDate.getFullYear()}-${String(doctor.fixedEndDate.getMonth() + 1).padStart(2, '0')}-${String(doctor.fixedEndDate.getDate()).padStart(2, '0')}`
+                : doctor.fixedEndDate;
+        }
 
         const { data, error } = await this.supabase
             .from('doctors')
@@ -129,6 +150,8 @@ export class SupabaseDoctorRepository implements IDoctorRepository {
             notes: data.notes,
             fixedWeekdays: data.fixed_weekdays,
             fixedShift: data.fixed_shift,
+            fixedStartDate: data.fixed_start_date ? new Date(data.fixed_start_date) : undefined,
+            fixedEndDate: data.fixed_end_date ? new Date(data.fixed_end_date) : undefined,
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at),
         });

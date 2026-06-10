@@ -92,6 +92,8 @@ export interface Doctor {
     // Recurrence for fixed doctors
     fixedWeekdays?: WeekdayNumber[];
     fixedShift?: ShiftType;
+    fixedStartDate?: string;
+    fixedEndDate?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -187,6 +189,8 @@ export interface DoctorFormData {
     notes?: string;
     fixedWeekdays?: number[];
     fixedShift?: ShiftType;
+    fixedStartDate?: string;
+    fixedEndDate?: string;
 }
 
 export interface ClinicRentalFormData {

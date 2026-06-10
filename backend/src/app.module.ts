@@ -12,6 +12,7 @@ import { AppointmentController } from './presentation/controllers/appointment.co
 import { PaymentController } from './presentation/controllers/payment.controller';
 import { DoctorController } from './presentation/controllers/doctor.controller';
 import { ClinicRentalController } from './presentation/controllers/clinic-rental.controller';
+import { DashboardController } from './presentation/controllers/dashboard.controller';
 
 // Patient Use Cases
 import { CreatePatientUseCase } from './application/use-cases/patient/create-patient.usecase';
@@ -56,6 +57,9 @@ import { ListClinicRentalsUseCase } from './application/use-cases/clinic-rental/
 import { UpdateClinicRentalUseCase } from './application/use-cases/clinic-rental/update-clinic-rental.usecase';
 import { DeleteClinicRentalUseCase } from './application/use-cases/clinic-rental/delete-clinic-rental.usecase';
 
+// Dashboard Use Case
+import { GetDashboardStatsUseCase } from './application/use-cases/dashboard/get-dashboard-stats.usecase';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -77,6 +81,7 @@ import { DeleteClinicRentalUseCase } from './application/use-cases/clinic-rental
     PaymentController,
     DoctorController,
     ClinicRentalController,
+    DashboardController,
   ],
   providers: [
     // Patient Use Cases
@@ -116,6 +121,7 @@ import { DeleteClinicRentalUseCase } from './application/use-cases/clinic-rental
     ListClinicRentalsUseCase,
     UpdateClinicRentalUseCase,
     DeleteClinicRentalUseCase,
+    GetDashboardStatsUseCase,
   ],
 })
 export class AppModule implements NestModule {

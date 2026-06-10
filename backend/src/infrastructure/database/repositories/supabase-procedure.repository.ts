@@ -56,7 +56,7 @@ export class SupabaseProcedureRepository implements IProcedureRepository {
             throw new Error(`Error finding procedures: ${error.message}`);
         }
 
-        return data.map(this.mapToEntity);
+        return (data || []).map(p => this.mapToEntity(p));
     }
 
     async update(id: string, procedure: Partial<Procedure>): Promise<Procedure> {

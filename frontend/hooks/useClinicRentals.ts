@@ -3,6 +3,8 @@ import { ClinicRental, ClinicRentalFormData, ShiftType, Doctor, CalendarItem, Ap
 import { clinicRentalService } from '@/features/clinic-rentals/services/clinic-rental.service';
 import { doctorService } from '@/features/doctors/services/doctor.service';
 import { appointmentService } from '@/features/appointments/services/appointment.service';
+import { toast } from 'sonner';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 // Helper to get start of week (Monday)
 function getWeekStart(date: Date): Date {
@@ -30,6 +32,7 @@ function getShiftFromTime(date: Date): ShiftType {
 }
 
 export function useClinicRentals() {
+    const confirm = useConfirm();
     const [rentals, setRentals] = useState<ClinicRental[]>([]);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -63,7 +66,7 @@ export function useClinicRentals() {
             setAppointments(appointmentsData);
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Erro ao carregar dados.');
+            toast.error('Erro ao carregar dados.');
         } finally {
             setLoading(false);
         }
@@ -132,8 +135,10 @@ export function useClinicRentals() {
 
             if (editingRental) {
                 await clinicRentalService.update(editingRental.id, cleanedData);
+                toast.success('Locação atualizada com sucesso!');
             } else {
                 await clinicRentalService.create(cleanedData);
+                toast.success('Locação registrada com sucesso!');
             }
             closeDialog();
             loadData();
@@ -142,7 +147,7 @@ export function useClinicRentals() {
             const message = error?.message?.includes('já está ocupado')
                 ? error.message
                 : 'Erro ao salvar locação';
-            alert(message);
+            toast.error(message);
         } finally {
             setSubmitting(false);
         }
@@ -163,13 +168,21 @@ export function useClinicRentals() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja remover esta locação?')) return;
+        const proceed = await confirm({
+            title: 'Remover Locação',
+            description: 'Tem certeza que deseja remover esta locação? Esta ação não pode ser desfeita.',
+            confirmText: 'Remover',
+            cancelText: 'Cancelar',
+            variant: 'destructive'
+        });
+        if (!proceed) return;
 
         try {
             await clinicRentalService.delete(id);
+            toast.success('Locação removida com sucesso!');
             loadData();
         } catch (error) {
-            alert('Erro ao deletar locação');
+            toast.error('Erro ao deletar locação');
         }
     };
 

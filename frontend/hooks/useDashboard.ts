@@ -1,15 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Appointment, Patient, Payment, Procedure } from '@/types';
+import { Appointment } from '@/types';
 import { appointmentService } from '@/features/appointments/services/appointment.service';
-import { patientService } from '@/features/patients/services/patient.service';
-import { paymentService } from '@/features/payments/services/payment.service';
-import { procedureService } from '@/features/procedures/services/procedure.service';
+import { api } from '@/lib/api';
+
+export interface DashboardKpis {
+    totalPatients: number;
+    todayAppointments: number;
+    completedProcedures: number;
+    pendingPayments: number;
+    monthlyRevenue: number;
+}
 
 export function useDashboard() {
-    const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const [patients, setPatients] = useState<Patient[]>([]);
-    const [payments, setPayments] = useState<Payment[]>([]);
-    const [procedures, setProcedures] = useState<Procedure[]>([]);
+    const [kpis, setKpis] = useState<DashboardKpis>({
+        totalPatients: 0,
+        todayAppointments: 0,
+        completedProcedures: 0,
+        pendingPayments: 0,
+        monthlyRevenue: 0,
+    });
+    const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -18,17 +28,22 @@ export function useDashboard() {
 
     const loadDashboardData = async () => {
         try {
-            const [appointmentsData, patientsData, paymentsData, proceduresData] = await Promise.all([
-                appointmentService.getAll(),
-                patientService.getAll(),
-                paymentService.getAll(),
-                procedureService.getAll(),
+            setLoading(true);
+            // Busca apenas os dados estatísticos consolidados e as consultas agendadas ativas
+            const [stats, appointmentsData] = await Promise.all([
+                api.get<DashboardKpis>('/api/dashboard/stats'),
+                appointmentService.getAll({ status: 'scheduled' }),
             ]);
 
-            setAppointments(appointmentsData);
-            setPatients(patientsData);
-            setPayments(paymentsData);
-            setProcedures(proceduresData);
+            setKpis(stats);
+
+            // Filtra e ordena apenas as consultas futuras no cliente (com base no subconjunto de agendadas)
+            const now = new Date();
+            const sortedUpcoming = appointmentsData
+                .filter(apt => new Date(apt.scheduledDate) > now)
+                .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+
+            setUpcomingAppointments(sortedUpcoming);
         } catch (error) {
             console.error('Erro ao carregar dados do dashboard:', error);
         } finally {
@@ -36,49 +51,14 @@ export function useDashboard() {
         }
     };
 
-    // Calculate KPIs
-    const totalPatients = patients.length;
-
-    const todayAppointments = appointments.filter(apt => {
-        const aptDate = new Date(apt.scheduledDate);
-        const today = new Date();
-        return aptDate.toDateString() === today.toDateString();
-    }).length;
-
-    const completedProcedures = appointments.filter(
-        apt => apt.status === 'completed'
-    ).reduce((sum, apt) => sum + (apt.procedimentos?.length || 0), 0);
-
-    const pendingPayments = payments.filter(p => p.status === 'pending').length;
-
-    const monthlyRevenue = payments
-        .filter(p => {
-            const pDate = new Date(p.paymentDate);
-            const now = new Date();
-            return p.status === 'completed' &&
-                pDate.getMonth() === now.getMonth() &&
-                pDate.getFullYear() === now.getFullYear();
-        })
-        .reduce((sum, p) => sum + p.amount, 0);
-
-    // Get next appointment
-    const upcomingAppointments = appointments
-        .filter(apt => new Date(apt.scheduledDate) > new Date() && apt.status === 'scheduled')
-        .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
-
     const nextAppointment = upcomingAppointments[0] || null;
     const upcomingList = upcomingAppointments.slice(0, 5);
 
     return {
         loading,
-        kpis: {
-            totalPatients,
-            todayAppointments,
-            completedProcedures,
-            pendingPayments,
-            monthlyRevenue,
-        },
+        kpis,
         nextAppointment,
         upcomingAppointments: upcomingList,
+        refetch: loadDashboardData,
     };
 }
