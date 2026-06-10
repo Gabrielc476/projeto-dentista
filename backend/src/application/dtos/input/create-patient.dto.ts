@@ -8,8 +8,9 @@ export class CreatePatientDto {
     @IsEmail()
     email?: string;
 
+    @IsOptional()
     @IsString()
-    phone: string;
+    phone?: string;
 
     @IsOptional()
     @IsString()

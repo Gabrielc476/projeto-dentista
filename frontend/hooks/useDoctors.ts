@@ -80,9 +80,9 @@ export function useDoctors() {
             }
             closeDialog();
             loadDoctors();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving doctor:', error);
-            toast.error('Erro ao salvar médico');
+            toast.error(error.message || 'Erro ao salvar médico');
         } finally {
             setSubmitting(false);
         }
@@ -125,8 +125,8 @@ export function useDoctors() {
             await doctorService.delete(id);
             toast.success('Médico removido com sucesso!');
             loadDoctors();
-        } catch (error) {
-            toast.error('Erro ao deletar médico');
+        } catch (error: any) {
+            toast.error(error.message || 'Erro ao deletar médico');
         }
     };
 

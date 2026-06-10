@@ -198,9 +198,9 @@ export function useAppointments() {
             }
             closeDialog();
             loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving appointment:', error);
-            toast.error('Erro ao salvar consulta');
+            toast.error(error.message || 'Erro ao salvar consulta');
         } finally {
             setSubmitting(false);
         }
@@ -243,9 +243,9 @@ export function useAppointments() {
             await appointmentService.delete(id);
             toast.success('Consulta deletada com sucesso!');
             loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao deletar consulta:', error);
-            toast.error('Erro ao deletar consulta');
+            toast.error(error.message || 'Erro ao deletar consulta');
         }
     };
 
@@ -254,9 +254,9 @@ export function useAppointments() {
             await appointmentService.update(id, { status: newStatus as any });
             toast.success('Status da consulta atualizado!');
             loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao atualizar status:', error);
-            toast.error('Erro ao atualizar status da consulta');
+            toast.error(error.message || 'Erro ao atualizar status da consulta');
         }
     };
 

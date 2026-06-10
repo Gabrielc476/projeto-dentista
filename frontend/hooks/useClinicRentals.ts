@@ -144,10 +144,7 @@ export function useClinicRentals() {
             loadData();
         } catch (error: any) {
             console.error('Error saving rental:', error);
-            const message = error?.message?.includes('já está ocupado')
-                ? error.message
-                : 'Erro ao salvar locação';
-            toast.error(message);
+            toast.error(error.message || 'Erro ao salvar locação');
         } finally {
             setSubmitting(false);
         }
@@ -181,8 +178,8 @@ export function useClinicRentals() {
             await clinicRentalService.delete(id);
             toast.success('Locação removida com sucesso!');
             loadData();
-        } catch (error) {
-            toast.error('Erro ao deletar locação');
+        } catch (error: any) {
+            toast.error(error.message || 'Erro ao deletar locação');
         }
     };
 

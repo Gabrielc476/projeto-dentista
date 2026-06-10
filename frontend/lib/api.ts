@@ -42,6 +42,29 @@ export class ApiClient {
         }
     }
 
+    private async handleErrorResponse(response: Response): Promise<never> {
+        let message = `Erro HTTP! Status: ${response.status}`;
+        try {
+            const errorText = await response.text();
+            if (errorText) {
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    if (errorJson && errorJson.message) {
+                        message = Array.isArray(errorJson.message)
+                            ? errorJson.message.join(', ')
+                            : errorJson.message;
+                    }
+                } catch {
+                    // Not JSON, use raw text
+                    message = errorText;
+                }
+            }
+        } catch {
+            // Ignore body read errors
+        }
+        throw new Error(message);
+    }
+
     async get<T>(endpoint: string): Promise<T> {
         const response = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'GET',
@@ -57,7 +80,7 @@ export class ApiClient {
         }
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            await this.handleErrorResponse(response);
         }
 
         return response.json();
@@ -92,15 +115,7 @@ export class ApiClient {
         }
 
         if (!response.ok) {
-            const errorText = await response.text();
-            let errorDetail = errorText;
-            try {
-                const errorJson = JSON.parse(errorText);
-                errorDetail = JSON.stringify(errorJson, null, 2);
-            } catch {
-                // Error is not JSON
-            }
-            throw new Error(`HTTP error! status: ${response.status}, details: ${errorDetail}`);
+            await this.handleErrorResponse(response);
         }
 
         return response.json();
@@ -135,7 +150,7 @@ export class ApiClient {
         }
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            await this.handleErrorResponse(response);
         }
 
         return response.json();
@@ -168,7 +183,7 @@ export class ApiClient {
         }
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            await this.handleErrorResponse(response);
         }
     }
 

@@ -60,6 +60,7 @@ export function usePatients() {
         try {
             // Remove empty string fields for optional fields
             const cleanedData = { ...formData };
+            if (!cleanedData.phone) delete cleanedData.phone;
             if (!cleanedData.email) delete cleanedData.email;
             if (!cleanedData.cpf) delete cleanedData.cpf;
             if (!cleanedData.birthDate) delete cleanedData.birthDate;
@@ -75,9 +76,9 @@ export function usePatients() {
             }
             closeDialog();
             loadPatients();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving patient:', error);
-            toast.error('Erro ao salvar paciente');
+            toast.error(error.message || 'Erro ao salvar paciente');
         } finally {
             setSubmitting(false);
         }
@@ -87,7 +88,7 @@ export function usePatients() {
         setEditingPatient(patient);
         setFormData({
             name: patient.name,
-            phone: patient.phone,
+            phone: patient.phone || '',
             email: patient.email || '',
             cpf: patient.cpf || '',
             address: patient.address || '',
@@ -110,8 +111,8 @@ export function usePatients() {
             await patientService.delete(id);
             toast.success('Paciente removido com sucesso!');
             loadPatients();
-        } catch (error) {
-            toast.error('Erro ao deletar paciente');
+        } catch (error: any) {
+            toast.error(error.message || 'Erro ao deletar paciente');
         }
     };
 

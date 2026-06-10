@@ -18,7 +18,7 @@ export function PatientInfoCard({ patient }: PatientInfoCardProps) {
 
                 <div>
                     <p className="text-sm text-gray-500">Telefone</p>
-                    <p className="font-medium">{patient.phone}</p>
+                    <p className="font-medium">{patient.phone || '-'}</p>
                 </div>
 
                 {patient.email && (

@@ -3,7 +3,7 @@ export interface Patient {
     id: string;
     name: string;
     email?: string;
-    phone: string;
+    phone?: string;
     cpf?: string;
     birthDate?: Date;
     address?: string;
@@ -145,7 +145,7 @@ export interface CalendarItem {
 export interface PatientFormData {
     name: string;
     email?: string;
-    phone: string;
+    phone?: string;
     cpf?: string;
     birthDate?: string;
     address?: string;

@@ -68,9 +68,9 @@ export function useProcedures() {
             }
             closeDialog();
             loadProcedures();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving procedure:', error);
-            toast.error('Erro ao salvar procedimento');
+            toast.error(error.message || 'Erro ao salvar procedimento');
         } finally {
             setSubmitting(false);
         }
@@ -101,8 +101,8 @@ export function useProcedures() {
             await procedureService.delete(id);
             toast.success('Procedimento removido com sucesso!');
             loadProcedures();
-        } catch (error) {
-            toast.error('Erro ao deletar procedimento');
+        } catch (error: any) {
+            toast.error(error.message || 'Erro ao deletar procedimento');
         }
     };
 

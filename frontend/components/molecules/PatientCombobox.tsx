@@ -46,7 +46,7 @@ export function PatientCombobox({ patients, value, onChange, onPatientCreated }:
         const searchLower = search.toLowerCase();
         return patients.filter(p =>
             p.name.toLowerCase().includes(searchLower) ||
-            p.phone.includes(search)
+            p.phone?.includes(search)
         );
     }, [patients, search]);
 
@@ -68,13 +68,13 @@ export function PatientCombobox({ patients, value, onChange, onPatientCreated }:
     };
 
     const handleCreate = async () => {
-        if (!search || !newPhone) return;
+        if (!search) return;
 
         setCreateStep('saving');
         try {
             const newPatient = await patientService.create({
                 name: search,
-                phone: newPhone,
+                phone: newPhone || undefined,
             });
             setCreateStep('success');
 
@@ -87,15 +87,15 @@ export function PatientCombobox({ patients, value, onChange, onPatientCreated }:
                 setIsCreating(false);
                 setCreateStep('idle');
             }, 800);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating patient:', error);
-            toast.error('Erro ao cadastrar paciente');
+            toast.error(error.message || 'Erro ao cadastrar paciente');
             setCreateStep('phone');
         }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && createStep === 'phone' && newPhone) {
+        if (e.key === 'Enter' && createStep === 'phone' && (!newPhone || newPhone.length >= 14)) {
             e.preventDefault();
             handleCreate();
         }
@@ -161,7 +161,9 @@ export function PatientCombobox({ patients, value, onChange, onPatientCreated }:
                                 >
                                     <div className="flex-1 text-left">
                                         <p className="font-medium">{patient.name}</p>
-                                        <p className="text-xs text-muted-foreground">{patient.phone}</p>
+                                        {patient.phone && (
+                                            <p className="text-xs text-muted-foreground">{patient.phone}</p>
+                                        )}
                                     </div>
                                     {value === patient.id && (
                                         <Check className="h-4 w-4 text-primary" />
@@ -248,7 +250,7 @@ export function PatientCombobox({ patients, value, onChange, onPatientCreated }:
                                 <Button
                                     type="button"
                                     size="sm"
-                                    disabled={!newPhone || newPhone.length < 14}
+                                    disabled={newPhone !== '' && newPhone.length < 14}
                                     onClick={handleCreate}
                                     className="gap-1.5"
                                 >

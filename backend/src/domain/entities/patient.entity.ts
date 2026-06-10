@@ -2,7 +2,7 @@ export class Patient {
   id: string;
   name: string;
   email?: string;
-  phone: string;
+  phone?: string;
   cpf?: string;
   birthDate?: Date;
   address?: string;

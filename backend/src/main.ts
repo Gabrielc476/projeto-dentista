@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SecurityLoggingInterceptor } from './auth/interceptors/security-logging.interceptor';
+import { GlobalExceptionFilter } from './presentation/filters/global-exception.filter';
 import helmet from 'helmet';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -54,6 +55,9 @@ async function bootstrap() {
 
   // Security logging interceptor for vulnerability detection
   app.useGlobalInterceptors(new SecurityLoggingInterceptor());
+
+  // Global exception filter for database errors and user-friendly messages
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

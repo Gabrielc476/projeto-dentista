@@ -77,13 +77,12 @@ export function PatientFormFields({ formData, onChange }: PatientFormFieldsProps
                 />
             </div>
             <div className="grid gap-2">
-                <Label htmlFor="phone">Telefone *</Label>
+                <Label htmlFor="phone">Telefone</Label>
                 <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
                     placeholder="(00) 00000-0000"
-                    required
                 />
             </div>
             <div className="grid gap-2">

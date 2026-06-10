@@ -79,9 +79,9 @@ export function usePayments() {
             }
             closeDialog();
             loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving payment:', error);
-            toast.error('Erro ao salvar pagamento');
+            toast.error(error.message || 'Erro ao salvar pagamento');
         } finally {
             setSubmitting(false);
         }
@@ -117,8 +117,8 @@ export function usePayments() {
             await paymentService.delete(id);
             toast.success('Pagamento removido com sucesso!');
             loadData();
-        } catch (error) {
-            toast.error('Erro ao deletar pagamento');
+        } catch (error: any) {
+            toast.error(error.message || 'Erro ao deletar pagamento');
         }
     };
 

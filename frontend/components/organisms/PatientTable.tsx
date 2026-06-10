@@ -55,7 +55,7 @@ export function PatientTable({ patients, loading, onEdit, onDelete }: PatientTab
                     {patients.map((patient) => (
                         <TableRow key={patient.id}>
                             <TableCell className="font-medium">{patient.name}</TableCell>
-                            <TableCell>{patient.phone}</TableCell>
+                            <TableCell>{patient.phone || '-'}</TableCell>
                             <TableCell>{patient.email || '-'}</TableCell>
                             <TableCell>{patient.cpf || '-'}</TableCell>
                             <TableCell className="text-right space-x-2">
