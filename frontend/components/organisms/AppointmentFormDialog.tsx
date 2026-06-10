@@ -20,6 +20,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Patient, Procedure, Appointment } from '@/types';
 import { PatientCombobox } from '@/components/molecules/PatientCombobox';
+import { ProcedureCombobox } from '@/components/molecules/ProcedureCombobox';
 import { DateTimePicker } from '@/components/molecules/DateTimePicker';
 import { useMemo } from 'react';
 import { useOccupancy } from '@/hooks/useOccupancy';
@@ -50,6 +51,7 @@ interface AppointmentFormDialogProps {
     onRemoveProcedure: (index: number) => void;
     onUpdateProcedure: (index: number, field: string, value: any) => void;
     onPatientCreated?: (patient: Patient) => void;
+    onProcedureCreated?: (procedure: Procedure) => void;
     existingAppointments?: Appointment[];  // For busy slot detection
     editingAppointmentId?: string;  // To exclude current appointment from busy slots
 }
@@ -68,6 +70,7 @@ export function AppointmentFormDialog({
     onRemoveProcedure,
     onUpdateProcedure,
     onPatientCreated,
+    onProcedureCreated,
     existingAppointments = [],
     editingAppointmentId,
 }: AppointmentFormDialogProps) {
@@ -192,11 +195,10 @@ export function AppointmentFormDialog({
                                             <Card key={index} className="p-3">
                                                 <div className="grid grid-cols-12 gap-2 items-end">
                                                     <div className="col-span-5">
-                                                        <Label className="text-xs">Procedimento</Label>
-                                                        <Select
-                                                            key={`${index}-${procSelection.id}`}
+                                                        <ProcedureCombobox
+                                                            procedures={procedures}
                                                             value={procSelection.id}
-                                                            onValueChange={(value) => {
+                                                            onChange={(value) => {
                                                                 console.log('[AppointmentForm] Select changed:', {
                                                                     index,
                                                                     oldValue: procSelection.id,
@@ -211,18 +213,10 @@ export function AppointmentFormDialog({
                                                                     unitPrice: proc?.defaultPrice
                                                                 });
                                                             }}
-                                                        >
-                                                            <SelectTrigger className="h-9">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {procedures.map((proc) => (
-                                                                    <SelectItem key={proc.id} value={proc.id}>
-                                                                        {proc.name}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
+                                                            onProcedureCreated={(newProc) => {
+                                                                onProcedureCreated?.(newProc);
+                                                            }}
+                                                        />
                                                     </div>
                                                     <div className="col-span-2">
                                                         <Label className="text-xs">Qtd</Label>

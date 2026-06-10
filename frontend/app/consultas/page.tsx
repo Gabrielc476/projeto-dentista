@@ -26,6 +26,7 @@ export default function ConsultasPage() {
         removeProcedure,
         updateProcedure,
         handlePatientCreated,
+        handleProcedureCreated,
     } = useAppointments();
 
     return (
@@ -59,6 +60,7 @@ export default function ConsultasPage() {
                 onRemoveProcedure={removeProcedure}
                 onUpdateProcedure={updateProcedure}
                 onPatientCreated={handlePatientCreated}
+                onProcedureCreated={handleProcedureCreated}
                 existingAppointments={appointments}
                 editingAppointmentId={editingAppointment?.id}
             />

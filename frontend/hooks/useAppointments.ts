@@ -304,6 +304,11 @@ export function useAppointments() {
         setPatients(prev => [...prev, patient].sort((a, b) => a.name.localeCompare(b.name)));
     };
 
+    const handleProcedureCreated = (procedure: Procedure) => {
+        // Add new procedure to the list and keep it updated
+        setProcedures(prev => [...prev, procedure].sort((a, b) => a.name.localeCompare(b.name)));
+    };
+
     return {
         appointments,
         patients,
@@ -325,6 +330,7 @@ export function useAppointments() {
         removeProcedure,
         updateProcedure,
         handlePatientCreated,
+        handleProcedureCreated,
     };
 }
 
