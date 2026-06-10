@@ -24,15 +24,26 @@ Arquivo api.ts para base de chamadas para API
 Services seguindo principio de SOLID para controle de chamadas para API
 
 Backend
-Nestjs, refatorado para arquitetura limpa, deve ser separado em domain com abstração total
-Application com use cases e dtos de input
-Infra com implementação de banco de dados e implementação do nestjs
-Utilização do padrão injectable, provider e module do nestjs
-Presentation com controllers e dtos de resposta
-No momento sem autenticação
+Nestjs, refatorado para arquitetura limpa, separado em:
+- Domain: com entidades de domínio e interfaces abstratas de repositórios.
+- Application: com casos de uso (use cases) e DTOs de entrada.
+- Infra: com implementação de acesso ao banco de dados (Supabase) e configurações gerais.
+- Presentation: com controllers e DTOs de resposta.
+
+Autenticação e Segurança:
+- Autenticação JWT implementada com cookies HttpOnly.
+- Proteção CSRF, Rate Limiting (limitação de taxa) e cabeçalhos seguros via Helmet.
+- Interceptador de logs de auditoria de segurança (Security Audit Logging).
+- Login único baseado nas credenciais de administrador configuradas em variáveis de ambiente.
+
+Rotas de Monitoramento (Keep Awake):
+- Rota de verificação de integridade configurada sob os caminhos `/health` e `/api/health`.
+- CORS habilitado para qualquer origem para essas rotas de health check, facilitando integrações com cron jobs e monitores de uptime para evitar o desligamento do servidor por inatividade na Render.
 
 Banco de dados
-Supabase, procurar a implementação mais simples possivel, utilizar cliente do supabase apenas no backend, frontend não pode ter acesso ao supabase.
+Supabase, utilizando o cliente `@supabase/supabase-js` apenas no backend (o frontend não possui acesso direto ao Supabase).
+- Row Level Security (RLS) habilitado nas tabelas do banco.
+- O backend contorna as políticas de RLS de forma segura utilizando a chave de serviço administrativa (`SUPABASE_SERVICE_ROLE_KEY`).
 
 Guia de tratamento de erros
 Sempre que houver um erro, o primeiro passo é sempre adicionar logs para diagnostico e não tentar achar soluções antes de ter uma imagem clara
