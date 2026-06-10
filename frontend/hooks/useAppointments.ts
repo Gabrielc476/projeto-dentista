@@ -97,6 +97,12 @@ export function useAppointments() {
             return;
         }
 
+        const hasEmptyProcedure = selectedProcedures.some(proc => !proc.id);
+        if (hasEmptyProcedure) {
+            toast.warning('Selecione um procedimento válido para todos os itens adicionados');
+            return;
+        }
+
         // Check for scheduling conflicts
         const newAppointmentDate = new Date(formData.scheduledDate);
         const conflicts = appointments.filter(apt => {
@@ -273,12 +279,11 @@ export function useAppointments() {
     };
 
     const addProcedure = () => {
-        if (procedures.length === 0) return;
-        const firstProcedure = procedures[0];
+        const firstProcedure = procedures.length > 0 ? procedures[0] : null;
         setSelectedProcedures([...selectedProcedures, {
-            id: firstProcedure.id,
+            id: firstProcedure ? firstProcedure.id : '',
             quantity: 1,
-            unitPrice: firstProcedure.defaultPrice,
+            unitPrice: firstProcedure ? firstProcedure.defaultPrice : 0,
         }]);
     };
 
